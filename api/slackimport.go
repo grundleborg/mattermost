@@ -18,6 +18,11 @@ import (
 	"strings"
 )
 
+type SlackBot struct {
+	Id       string
+	Username string
+}
+
 type SlackChannel struct {
 	Id      string            `json:"id"`
 	Name    string            `json:"name"`
@@ -329,6 +334,29 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 	return addedChannels
 }
 
+func SlackAddBots(teamId string, bots map[string]SlackBot, log *bytes.Buffer) {
+	// TODO: How to actually import the bots? As web hooks? But then which user owns them?
+}
+
+func SlackExtractBots(posts map[string][]SlackPost) map[string]SlackBot {
+	var bots []SlackBot
+
+	for _, channelPosts := range posts {
+		for _, post := range channelPosts {
+			if len(post.BotId) > 0 {
+				if _, ok := bots[post.BotId]; !ok {
+					bots[post.BotId] = SlackBot{
+						Id:       post.BotId,
+						Username: post.BotUsername,
+					}
+				}
+			}
+		}
+	}
+
+	return bots
+}
+
 func SlackConvertUserMentions(users []SlackUser, posts map[string][]SlackPost) map[string][]SlackPost {
 	var regexes = make(map[string]*regexp.Regexp, len(users))
 	for _, user := range users {
@@ -420,10 +448,13 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 		}
 	}
 
+	bots = SlackExtractBots(posts)
+
 	posts = SlackConvertUserMentions(users, posts)
 	posts = SlackConvertChannelMentions(channels, posts)
 
 	addedUsers := SlackAddUsers(teamID, users, log)
+	addedBots := SlackAddBots(teamID, bots, log)
 	SlackAddChannels(teamID, channels, posts, addedUsers, uploads, log)
 
 	log.WriteString(utils.T("api.slackimport.slack_import.notes"))
