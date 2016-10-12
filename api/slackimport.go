@@ -172,6 +172,32 @@ func SlackAddUsers(teamId string, slackusers []SlackUser, log *bytes.Buffer) map
 	return addedUsers
 }
 
+func SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
+	var team *model.Team
+	if result := <-Srv.Store.Team().Get(teamId); result.Err != nil {
+		log.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
+		return addedUsers
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	botUser := model.User{
+		Username:  "slackimportuser",
+		FirstName: "",
+		LastName:  "",
+		Email:     "slackimportuser@localhost",
+		Password:  model.NewId(),
+	}
+
+	if mUser := ImportUser(team, &newUser); mUser != nil {
+		log.WriteString(utils.T("api.slackimport.slack_add_bot_user.email_pwd", map[string]interface{}{"Email": newUser.Email, "Password": password}))
+		return mUser
+	} else {
+		log.WriteString(utils.T("api.slackimport.slack_add_bot_user.unable_import", map[string]interface{}{"Username": sUser.Username}))
+		return nil
+	}
+}
+
 func SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File) {
 	for _, sPost := range posts {
 		switch {
@@ -283,6 +309,13 @@ func SlackUploadFile(sPost SlackPost, uploads map[string]*zip.File, teamId strin
 	} else {
 		l4g.Warn(utils.T("api.slackimport.slack_add_posts.upload_file_not_in_json.warn"))
 		return nil, false
+	}
+}
+
+func deactivateSlackBotUser(user *model.User) {
+	_, err := UpdateActive(user, false)
+	if err != nil {
+		l4g.Warn(utils.T("api.slackimport.slack_deactivate_bot_user.failed_to_deactivate", err))
 	}
 }
 
@@ -454,8 +487,14 @@ func SlackImport(fileData multipart.File, fileSize int64, teamID string) (*model
 	posts = SlackConvertChannelMentions(channels, posts)
 
 	addedUsers := SlackAddUsers(teamID, users, log)
+	botUser := SlackAddBotUser(teamID, log)
 	addedBots := SlackAddBots(teamID, bots, log)
+
 	SlackAddChannels(teamID, channels, posts, addedUsers, uploads, log)
+
+	if botUser != nil {
+		SlackDeactivateBotUser(botUser)
+	}
 
 	log.WriteString(utils.T("api.slackimport.slack_import.notes"))
 	log.WriteString("=======\r\n\r\n")
