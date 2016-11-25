@@ -61,7 +61,7 @@
         "MaxIdleConns": 20,
         "MaxOpenConns": 300,
         "Trace": false,
-        "AtRestEncryptKey": ""
+        "AtRestEncryptKey": "gunr5hgo36i7zqn5fbj1t85f6m94izg9"
     },
     "LogSettings": {
         "EnableConsole": true,
@@ -85,7 +85,7 @@
         "DriverName": "local",
         "Directory": "./data/",
         "EnablePublicLink": false,
-        "PublicLinkSalt": "",
+        "PublicLinkSalt": "or19n4ra8fkyh9jj5677qxdfef9cey1o",
         "ThumbnailWidth": 120,
         "ThumbnailHeight": 100,
         "PreviewWidth": 1024,
@@ -114,8 +114,8 @@
         "SMTPServer": "",
         "SMTPPort": "",
         "ConnectionSecurity": "",
-        "InviteSalt": "",
-        "PasswordResetSalt": "",
+        "InviteSalt": "zpzfc7idjighb7t6itznk4kg769zi894",
+        "PasswordResetSalt": "hgud5r6doiajwhcedtxfgot6qs69h7xs",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",

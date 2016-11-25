@@ -26,6 +26,9 @@ function getNotificationsStateFromStores() {
     let enableEmail = 'true';
     let pushActivity = 'mention';
     let pushStatus = Constants.UserStatuses.ONLINE;
+    let sleepingEnabled = false;
+    let sleepingStart = '';
+    let sleepingEnd = '';
 
     if (user.notify_props) {
         if (user.notify_props.desktop) {
@@ -48,6 +51,15 @@ function getNotificationsStateFromStores() {
         }
         if (user.notify_props.push_status) {
             pushStatus = user.notify_props.push_status;
+        }
+        if (user.notify_props.sleeping_enabled && user.notify_props.sleeping_enabled === "true") {
+            sleepingEnabled = user.notify_props.sleeping_enabled = true;
+        }
+        if (user.notify_props.sleeping_start) {
+            sleepingStart = user.notify_props.sleeping_start;
+        }
+        if (user.notify_props.sleeping_end) {
+            sleepingEnd = user.notify_props.sleeping_end;
         }
     }
 
@@ -93,6 +105,9 @@ function getNotificationsStateFromStores() {
         enableEmail,
         pushActivity,
         pushStatus,
+        sleepingEnabled,
+        sleepingStart,
+        sleepingEnd,
         desktopSound: sound,
         usernameKey,
         mentionKey,
@@ -100,7 +115,7 @@ function getNotificationsStateFromStores() {
         customKeysChecked: customKeys.length > 0,
         firstNameKey,
         channelKey,
-        notifyCommentsLevel: comments
+        notifyCommentsLevel: comments,
     };
 }
 
@@ -116,6 +131,7 @@ export default class NotificationsTab extends React.Component {
         this.setStateValue = this.setStateValue.bind(this);
         this.onListenerChange = this.onListenerChange.bind(this);
         this.handleEmailRadio = this.handleEmailRadio.bind(this);
+        this.handleSleepingEnabledRadio = this.handleSleepingEnabledRadio.bind(this);
         this.updateUsernameKey = this.updateUsernameKey.bind(this);
         this.updateMentionKey = this.updateMentionKey.bind(this);
         this.updateFirstNameKey = this.updateFirstNameKey.bind(this);
@@ -137,6 +153,9 @@ export default class NotificationsTab extends React.Component {
         data.desktop_duration = this.state.desktopDuration;
         data.push = this.state.pushActivity;
         data.push_status = this.state.pushStatus;
+        data.sleeping_enabled = this.state.sleepingEnabled;
+        data.sleeping_start = this.state.sleepingStart;
+        data.sleeping_end = this.state.sleepingEnd;
         data.comments = this.state.notifyCommentsLevel;
 
         var mentionKeys = [];
@@ -155,6 +174,8 @@ export default class NotificationsTab extends React.Component {
         data.mention_keys = stringKeys;
         data.first_name = this.state.firstNameKey.toString();
         data.channel = this.state.channelKey.toString();
+
+        data.sleeping_enabled = this.state.sleepingEnabled.toString();
 
         Client.updateUserNotifyProps(data,
             () => {
@@ -222,6 +243,11 @@ export default class NotificationsTab extends React.Component {
 
     handleEmailRadio(enableEmail) {
         this.setState({enableEmail});
+        this.refs.wrapper.focus();
+    }
+
+    handleSleepingEnabledRadio(sleepingEnabled) {
+        this.setState({sleepingEnabled});
         this.refs.wrapper.focus();
     }
 
@@ -830,6 +856,103 @@ export default class NotificationsTab extends React.Component {
             );
         }
 
+        var sleepingSection;
+        var handleUpdateSleepingSection;
+        if (this.props.activeSection === 'sleeping') {
+            var sleepingEnabled = false;
+            if (this.state.sleepingEnabled === true) {
+                sleepingEnabled = true;
+            } else {
+                sleepingEnabled = false;
+            }
+
+            const inputs = [];
+
+            inputs.push(
+                <div key='userNotificationSleepingEnabled'>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                name='sleepingEnabled'
+                                checked={sleepingEnabled}
+                                onChange={this.handleSleepingEnabledRadio.bind(this, true)}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.sleepingEnabledTrue'
+                                defaultMessage='On'
+                            />
+                        </label>
+                        <br/>
+                    </div>
+                    <div className='radio'>
+                        <label>
+                            <input
+                                type='radio'
+                                name='sleepingEnabled'
+                                checked={!sleepingEnabled}
+                                onChange={this.handleSleepingEnabledRadio.bind(this, false)}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.sleepingEnabledFalse'
+                                defaultMessage='Off'
+                            />
+                        </label>
+                        <br/>
+                    </div>
+                </div>
+            );
+
+            const extraInfo = (
+                <span>
+                    <FormattedMessage
+                        id='user.settings.notifications.sleepingInfo'
+                        defaultMessage="Enable sleeping mode to disable push notifications when you are asleep."
+                    />
+                </span>
+            );
+
+            sleepingSection = (
+                <SettingItemMax
+                    title={Utils.localizeMessage('user.settings.notifications.sleeping', 'Sleeping mode')}
+                    extraInfo={extraInfo}
+                    inputs={inputs}
+                    submit={this.handleSubmit}
+                    server_error={serverError}
+                    updateSection={this.handleCancel}
+                />
+            );
+        } else {
+            let describe = '';
+            if (this.state.sleepingEnabled === true) {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.notifications.overviewSleepingEnabled'
+                        defaultMessage="Sleeping mode enabled"
+                    />
+                );
+            } else {
+                describe = (
+                    <FormattedMessage
+                        id='user.settings.notifications.overviewSleepingDisabled'
+                        defaultMessage='Sleeping mode disabled'
+                    />
+                );
+            }
+
+            handleUpdateSleepingSection = function updateSleepingSection() {
+                this.props.updateSection('sleeping');
+            }.bind(this);
+
+            sleepingSection = (
+                <SettingItemMin
+                    title={Utils.localizeMessage('user.settings.notifications.sleeping', 'Sleeping mode')}
+                    describe={describe}
+                    updateSection={handleUpdateSleepingSection}
+                />
+            );
+        }
+
         const pushNotificationSection = this.createPushNotificationSection();
 
         return (
@@ -896,6 +1019,8 @@ export default class NotificationsTab extends React.Component {
                     {keysSection}
                     <div className='divider-light'/>
                     {commentsSection}
+                    <div className='divider-light'/>
+                    {sleepingSection}
                     <div className='divider-dark'/>
                 </div>
             </div>
