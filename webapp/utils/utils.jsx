@@ -531,6 +531,15 @@ export function applyTheme(theme) {
         changeCss('.status-wrapper.status-away:after', 'background:' + theme.awayIndicator);
     }
 
+    /*
+    if (theme.busyIndicator) {
+        changeCss('.app__body .status .busy--icon', 'fill:' + theme.busyIndicator);
+        changeCss('.app__body .channel-header__info .status .busy--icon', 'fill:' + theme.busyIndicator);
+        changeCss('.app__body .navbar .status .busy--icon', 'fill:' + theme.busyIndicator);
+        changeCss('.status-wrapper.status-busy:after', 'background:' + theme.busyIndicator);
+    }
+    */
+
     if (theme.mentionBj) {
         changeCss('.sidebar--left .nav-pills__unread-indicator', 'background:' + theme.mentionBj);
         changeCss('.sidebar--left .badge', 'background:' + theme.mentionBj + '!important;');

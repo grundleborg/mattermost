@@ -460,6 +460,18 @@
     "translation": "You are now away"
   },
   {
+    "id": "api.command_busy.desc",
+    "translation": "Set your status to busy"
+  },
+  {
+    "id": "api.command_busy.name",
+    "translation": "busy"
+  },
+  {
+    "id": "api.command_busy.success",
+    "translation": "You are now busy"
+  },
+  {
     "id": "api.command_collapse.desc",
     "translation": "Turn on auto-collapsing of image previews"
   },

@@ -73,6 +73,7 @@ export default class ImportThemeModal extends React.Component {
         theme.sidebarHeaderTextColor = colors[5];
         theme.onlineIndicator = colors[6];
         theme.awayIndicator = '#E0B333';
+        // theme.busyIndicator = 'C00000';
         theme.mentionBj = colors[7];
         theme.mentionColor = '#ffffff';
         theme.centerChannelBg = '#ffffff';

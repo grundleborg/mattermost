@@ -18,6 +18,8 @@ export default class StatusIcon extends React.Component {
             statusIcon = Constants.ONLINE_ICON_SVG;
         } else if (status === 'away') {
             statusIcon = Constants.AWAY_ICON_SVG;
+        } else if (status === 'busy') {
+            statusIcon = Constants.BUSY_ICON_SVG;
         } else {
             statusIcon = Constants.OFFLINE_ICON_SVG;
         }

@@ -20,6 +20,12 @@
         &.away--icon {
             @include opacity(1);
         }
+
+        &.busy--icon {
+            // FIXME: Hardcoded hack.
+            fill: #C00000;
+            @include opacity(1);
+        }
     }
 
     .fa-lock {
@@ -30,4 +36,9 @@
         position: relative;
         top: -1px;
     }
+}
+
+// FIXME: Hardcoded hack.
+.status-wrapper.status-busy:after {
+    background: #cc0000;
 }

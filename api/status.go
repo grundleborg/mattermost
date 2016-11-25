@@ -258,6 +258,44 @@ func SetStatusAwayIfNeeded(userId string, manual bool) {
 	go Publish(event)
 }
 
+func SetStatusBusyIfNeeded(userId string, manual bool) {
+	status, err := GetStatus(userId)
+
+	if err != nil {
+		status = &model.Status{userId, model.STATUS_BUSY, manual, 0, ""}
+	}
+
+	if !manual && status.Manual {
+		return // manually set status always overrides non-manual one
+	}
+
+	if !manual {
+		if status.Status == model.STATUS_BUSY {
+			return
+		}
+
+		// FIXME: Not sure what this bit does.
+		/*if !IsUserAway(status.LastActivityAt) {
+			return
+		}*/
+	}
+
+	status.Status = model.STATUS_BUSY
+	status.Manual = manual
+	status.ActiveChannel = ""
+
+	AddStatusCache(status)
+
+	if result := <-Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
+		l4g.Error(utils.T("api.status.save_status.error"), userId, result.Err)
+	}
+
+	event := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_STATUS_CHANGE, "", "", status.UserId, nil)
+	event.Add("status", model.STATUS_BUSY)
+	event.Add("user_id", status.UserId)
+	go Publish(event)
+}
+
 func GetStatus(userId string) (*model.Status, *model.AppError) {
 	if result, ok := statusCache.Get(userId); ok {
 		status := result.(*model.Status)
