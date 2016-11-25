@@ -105,9 +105,9 @@ class NotificationStoreClass extends EventEmitter {
             const sound = !user.notify_props || user.notify_props.desktop_sound === 'true';
 
             // Notify if you're not looking in the right channel or when
-            // the window itself is not active
+            // the window itself is not active, but not if your status is set to busy.
             const activeChannel = ChannelStore.getCurrent();
-            const notify = activeChannel.id !== channel.id || !this.inFocus;
+            const notify = (activeChannel.id !== channel.id || !this.inFocus) && UserStore.getStatus(user.id) != Constants.UserStatuses.BUSY;
 
             if (notify) {
                 Utils.notifyMe(title, body, channel, teamId, duration, !sound);

@@ -182,7 +182,8 @@ export const WebrtcActionTypes = keyMirror({
 export const UserStatuses = {
     OFFLINE: 'offline',
     AWAY: 'away',
-    ONLINE: 'online'
+    ONLINE: 'online',
+    BUSY: 'busy'
 };
 
 export const UserSearchOptions = {
