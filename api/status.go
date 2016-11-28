@@ -12,6 +12,7 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/store"
 	"github.com/mattermost/platform/utils"
+	"time"
 )
 
 var statusCache *utils.Cache = utils.NewLru(model.STATUS_CACHE_SIZE)
@@ -320,6 +321,20 @@ func DoesStatusAllowPushNotification(user *model.User, status *model.Status, cha
 
 	if props["push"] == "none" {
 		return false
+	}
+
+	if props["sleeping_enabled"] == "true" {
+		start, err1 := time.Parse("%H:%M", props["sleeping_start"]);
+		end, err2 := time.Parse("%H:%M", props["sleeping_end"]);
+		if err1 == nil && err2 == nil {
+			now := time.Now()
+			if start.Before(end) && now.After(start) && now.Before(end) {
+				return false
+			}
+			if start.After(end) && now.Before(start) && now.After(end) {
+				return false
+			}
+		}
 	}
 
 	if pushStatus, ok := props["push_status"]; (pushStatus == model.STATUS_ONLINE || !ok) && (status.ActiveChannel != channelId || model.GetMillis()-status.LastActivityAt > model.STATUS_CHANNEL_TIMEOUT) {

@@ -155,9 +155,6 @@ export default class NotificationsTab extends React.Component {
         data.desktop_duration = this.state.desktopDuration;
         data.push = this.state.pushActivity;
         data.push_status = this.state.pushStatus;
-        data.sleeping_enabled = this.state.sleepingEnabled;
-        data.sleeping_start = this.state.sleepingStart;
-        data.sleeping_end = this.state.sleepingEnd;
         data.comments = this.state.notifyCommentsLevel;
 
         var mentionKeys = [];
@@ -178,6 +175,8 @@ export default class NotificationsTab extends React.Component {
         data.channel = this.state.channelKey.toString();
 
         data.sleeping_enabled = this.state.sleepingEnabled.toString();
+        data.sleeping_start = this.state.sleepingStart;
+        data.sleeping_end = this.state.sleepingEnd;
 
         Client.updateUserNotifyProps(data,
             () => {
