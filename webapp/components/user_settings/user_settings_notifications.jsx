@@ -138,6 +138,8 @@ export default class NotificationsTab extends React.Component {
         this.updateChannelKey = this.updateChannelKey.bind(this);
         this.updateCustomMentionKeys = this.updateCustomMentionKeys.bind(this);
         this.updateState = this.updateState.bind(this);
+        this.updateSleepingStart = this.updateSleepingStart.bind(this);
+        this.updateSleepingEnd = this.updateSleepingEnd.bind(this);
         this.onCustomChange = this.onCustomChange.bind(this);
         this.createPushNotificationSection = this.createPushNotificationSection.bind(this);
 
@@ -278,6 +280,16 @@ export default class NotificationsTab extends React.Component {
         } else {
             this.setState({customKeys: '', customKeysChecked: false});
         }
+    }
+
+    updateSleepingStart() {
+        var text = this.refs.sleepingStart.value;
+        this.setState({sleepingStart: text});
+    }
+
+    updateSleepingEnd() {
+        var text = this.refs.sleepingEnd.value;
+        this.setState({sleepingEnd: text});
     }
 
     onCustomChange() {
@@ -866,6 +878,8 @@ export default class NotificationsTab extends React.Component {
                 sleepingEnabled = false;
             }
 
+            let sleepingStart = this.state.sleepingStart;
+            let sleepingEnd = this.state.sleepingEnd;
             const inputs = [];
 
             inputs.push(
@@ -898,8 +912,50 @@ export default class NotificationsTab extends React.Component {
                                 defaultMessage='Off'
                             />
                         </label>
-                        <br/>
                     </div>
+                    <br/>
+                    <div
+                        key='sleepingStart'
+                        className='form-group'
+                    >
+                        <label className='col-sm-5 control-label'>
+                            <FormattedMessage
+                                id='user.settings.notifications.sleepingStart'
+                                defaultMessage='Sleeping Mode Start'
+                            />
+                        </label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                ref='sleepingStart'
+                                type='time'
+                                onChange={this.updateSleepingStart}
+                                value={this.state.sleepingStart}
+                            />
+                        </div>
+                    </div>
+                    <br/>
+                    <div
+                        key='sleepingEnd'
+                        className='form-group'
+                    >
+                        <label className='col-sm-5 control-label'>
+                            <FormattedMessage
+                                id='user.settings.notifications.sleepingEnd'
+                                defaultMessage='Sleeping Mode End'
+                            />
+                        </label>
+                        <div className='col-sm-7'>
+                            <input
+                                className='form-control'
+                                ref='sleepingEnd'
+                                type='time'
+                                onChange={this.updateSleepingEnd}
+                                value={this.state.sleepingEnd}
+                            />
+                        </div>
+                    </div>
+                    <br/>
                 </div>
             );
 
