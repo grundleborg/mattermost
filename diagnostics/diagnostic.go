@@ -228,12 +228,10 @@ func trackActivity() {
 		"public_channels":          publicChannelCount,
 		"private_channels":         privateChannelCount,
 		"direct_message_channels":  directChannelCount,
-		"deleted_public_channels":  deletedPublicChannelCount,
-		"deleted_private_channels": deletedPrivateChannelCount,
+		"public_channels_deleted":  deletedPublicChannelCount,
+		"private_channels_deleted": deletedPrivateChannelCount,
 		"posts":                    postsCount,
 	})
-
-	// TODO: registered inactive accounts.
 }
 
 func trackLicense() {
