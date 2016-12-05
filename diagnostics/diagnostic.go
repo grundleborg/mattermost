@@ -6,10 +6,10 @@ package diagnostics
 import (
 	"runtime"
 
-	"github.com/segmentio/analytics-go"
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
+	"github.com/segmentio/analytics-go"
 )
 
 const (
@@ -168,11 +168,17 @@ func trackConfig() {
 	})
 }
 
-
 func trackActivity() {
 	var userCount int64
 	var activeUserCount int64
+	var inactiveUserCount int64
 	var teamCount int64
+	var publicChannelCount int64
+	var privateChannelCount int64
+	var directChannelCount int64
+	var deletedPublicChannelCount int64
+	var deletedPrivateChannelCount int64
+	var postsCount int64
 
 	if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
 		userCount = ucr.Data.(int64)
@@ -182,15 +188,52 @@ func trackActivity() {
 		activeUserCount = ucr.Data.(int64)
 	}
 
+	if iucr := <-api.Srv.Store.Status().GetTotalActiveUsersCount(); iucr.Err == nil {
+		inactiveUserCount = iucr.Data.(int64)
+	}
+
 	if tcr := <-api.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
 		teamCount = tcr.Data.(int64)
 	}
 
+	if ucc := <-api.Srv.Store.Channel().AnalyticsTypeCount("", "O"); ucc.Err == nil {
+		publicChannelCount = ucc.Data.(int64)
+	}
+
+	if pcc := <-api.Srv.Store.Channel().AnalyticsTypeCount("", "P"); pcc.Err == nil {
+		privateChannelCount = pcc.Data.(int64)
+	}
+
+	if dcc := <-api.Srv.Store.Channel().AnalyticsTypeCount("", "D"); dcc.Err == nil {
+		directChannelCount = dcc.Data.(int64)
+	}
+
+	if duccr := <-api.Srv.Store.Channel().AnalyticsTypeCount("", "O"); duccr.Err == nil {
+		deletedPublicChannelCount = duccr.Data.(int64)
+	}
+
+	if dpccr := <-api.Srv.Store.Channel().AnalyticsTypeCount("", "P"); dpccr.Err == nil {
+		deletedPrivateChannelCount = dpccr.Data.(int64)
+	}
+
+	if pcr := <-api.Srv.Store.Post().AnalyticsPostCount("", false, false); pcr.Err == nil {
+		postsCount = pcr.Data.(int64)
+	}
+
 	SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
-		"registered_users": userCount,
-		"active_users":     activeUserCount,
-		"teams":            teamCount,
+		"registered_users":         userCount,
+		"active_users":             activeUserCount,
+		"inactive_users":           inactiveUserCount,
+		"teams":                    teamCount,
+		"public_channels":          publicChannelCount,
+		"private_channels":         privateChannelCount,
+		"direct_message_channels":  directChannelCount,
+		"deleted_public_channels":  deletedPublicChannelCount,
+		"deleted_private_channels": deletedPrivateChannelCount,
+		"posts":                    postsCount,
 	})
+
+	// TODO: registered inactive accounts.
 }
 
 func trackLicense() {
