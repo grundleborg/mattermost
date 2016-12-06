@@ -118,6 +118,7 @@ type ChannelStore interface {
 	SearchInTeam(teamId string, term string) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
+	AnalyticsGetAll() StoreChannel
 }
 
 type PostStore interface {

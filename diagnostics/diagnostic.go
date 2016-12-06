@@ -44,6 +44,7 @@ const (
 
 	TRACK_LICENSE  = "license"
 	TRACK_ACTIVITY = "activity"
+	TRACK_CHANNEL  = "channel"
 	TRACK_VERSION  = "version"
 )
 
@@ -53,6 +54,7 @@ func SendDailyDiagnostics() {
 	if *utils.Cfg.LogSettings.EnableDiagnostics {
 		initDiagnostics()
 		trackActivity()
+		trackChannels()
 		trackConfig()
 		trackLicense()
 		trackVersion()
@@ -232,6 +234,20 @@ func trackActivity() {
 		"private_channels_deleted": deletedPrivateChannelCount,
 		"posts":                    postsCount,
 	})
+}
+
+func trackChannels() {
+	if res := <-api.Srv.Store.Channel().AnalyticsGetAll(); res.Err == nil {
+		for _, channel := range res.Data.([]*model.ChannelWithMemberCount) {
+			SendDiagnostic(TRACK_CHANNEL, map[string]interface{}{
+				"team_id": channel.TeamId,
+				"channel_id": channel.Id,
+				"posts_count": channel.TotalMsgCount,
+				"channel_type": channel.Type,
+				"members_count": channel.MemberCount,
+			})
+		}
+	}
 }
 
 func trackLicense() {

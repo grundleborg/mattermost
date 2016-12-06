@@ -4156,6 +4156,10 @@
     "translation": "We couldn't get all the channels"
   },
   {
+    "id": "store.sql_channel.analytics_get_all.app_error",
+    "translation": "We couldn't get all the channels"
+  },
+  {
     "id": "store.sql_channel.get_by_name.existing.app_error",
     "translation": "We couldn't find the existing channel"
   },

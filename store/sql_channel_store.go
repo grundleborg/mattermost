@@ -1263,3 +1263,25 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 
 	return result
 }
+
+func (s SqlChannelStore) AnalyticsGetAll() StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.ChannelWithMemberCount
+		_, err := s.GetReplica().Select(&data, "SELECT c.*, COUNT(m.ChannelId) AS MemberCount FROM Channels c LEFT JOIN ChannelMembers m ON m.ChannelId = c.Id GROUP BY c.Id;")
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.AnalyticsGetAll", "store.sql_channel.analytics_get_all.app_error", nil, "err="+err.Error())
+		} else {
+			result.Data = data
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
