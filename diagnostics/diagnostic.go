@@ -10,7 +10,6 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/segmentio/analytics-go"
-	"os/user"
 	"strings"
 )
 
