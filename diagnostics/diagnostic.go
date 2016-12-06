@@ -10,6 +10,8 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/segmentio/analytics-go"
+	"os/user"
+	"strings"
 )
 
 const (
@@ -45,6 +47,7 @@ const (
 	TRACK_LICENSE  = "license"
 	TRACK_ACTIVITY = "activity"
 	TRACK_CHANNEL  = "channel"
+	TRACK_USER     = "user"
 	TRACK_VERSION  = "version"
 )
 
@@ -57,6 +60,7 @@ func SendDailyDiagnostics() {
 		trackChannels()
 		trackConfig()
 		trackLicense()
+		trackUsers()
 		trackVersion()
 	}
 }
@@ -76,6 +80,30 @@ func SendDiagnostic(event string, properties map[string]interface{}) {
 		UserId:     utils.CfgDiagnosticId,
 		Properties: properties,
 	})
+}
+
+func isSetString(property string) bool {
+	if len(property) > 0 {
+		return true
+	}
+	return false
+}
+
+func isSetInt(property int64) bool {
+	if property > 0 {
+		return true
+	}
+	return false
+}
+
+func getPref(name string, prefs model.Preferences) string {
+	for _, pref := range prefs {
+		if pref.Name == name {
+			return pref.Value
+		}
+	}
+
+	return ""
 }
 
 func trackConfig() {
@@ -240,10 +268,10 @@ func trackChannels() {
 	if res := <-api.Srv.Store.Channel().AnalyticsGetAll(); res.Err == nil {
 		for _, channel := range res.Data.([]*model.ChannelWithMemberCount) {
 			SendDiagnostic(TRACK_CHANNEL, map[string]interface{}{
-				"team_id": channel.TeamId,
-				"channel_id": channel.Id,
-				"posts_count": channel.TotalMsgCount,
-				"channel_type": channel.Type,
+				"team_id":       channel.TeamId,
+				"channel_id":    channel.Id,
+				"posts_count":   channel.TotalMsgCount,
+				"channel_type":  channel.Type,
 				"members_count": channel.MemberCount,
 			})
 		}
@@ -261,6 +289,83 @@ func trackLicense() {
 			"users":    *utils.License.Features.Users,
 			"features": utils.License.Features.ToMap(),
 		})
+	}
+}
+
+func trackUsers() {
+	if res := <-api.Srv.Store.User().AnalyticsGetUsersWithTeamCount(); res.Err == nil {
+		for _, user := range res.Data.([]*model.UserWithTeamCount) {
+			data := map[string]interface{}{
+				"user_id":                                user.Id,
+				"teams_joined":                           user.TeamCount,
+				"first_name_set":                         isSetString(user.FirstName),
+				"last_name_set":                          isSetString(user.LastName),
+				"nickname_set":                           isSetString(user.Nickname),
+				"profile_picture_set":                    isSetInt(user.LastPictureUpdate),
+				"mfa_activated":                          user.MfaActive,
+				"signin_method":                          user.AuthService,
+				"language":                               user.Locale,
+				"send_desktop_notifications":             user.NotifyProps["desktop"],
+				"desktop_notifications_sound":            user.NotifyProps["desktop_sound"],
+				"desktop_notifications_duration":         user.NotifyProps["desktop_duration"],
+				"email_notifications":                    user.NotifyProps["email"],
+				"push_notifications_activity":            user.NotifyProps["push"],
+				"push_notifications_status":              user.NotifyProps["push_status"],
+				"notifications_trigger_first_name":       user.NotifyProps["first_name"],
+				"notifications_trigger_channel_mentions": user.NotifyProps["channel"],
+				"reply_notifications":                    user.NotifyProps["comments"],
+			}
+
+			mentionTriggers := strings.Split(user.NotifyProps["mention_keys"], ",")
+			for _, trigger := range mentionTriggers {
+				if trigger == user.Username {
+					data["notifications_trigger_username"] = "true"
+				} else if trigger == "@"+user.Username {
+					data["notifications_trigger_at_username"] = "true"
+				} else {
+					data["notifications_trigger_other"] = "true"
+				}
+			}
+
+			if pur := <-api.Srv.Store.Channel().AnalyticsTypeCountForUser(user.Id, "O"); pur.Err == nil {
+				data["public_channels_joined"] = pur.Data.(int64)
+			}
+
+			if prr := <-api.Srv.Store.Channel().AnalyticsTypeCountForUser(user.Id, "P"); prr.Err == nil {
+				data["private_channels_joined"] = prr.Data.(int64)
+			}
+
+			if dmr := <-api.Srv.Store.Channel().AnalyticsTypeCountForUser(user.Id, "O"); dmr.Err == nil {
+				data["direct_channels_joined"] = dmr.Data.(int64)
+			}
+
+			// TODO: Theme.
+
+			if dpr := <-api.Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); dpr.Err == nil {
+				prefs := dpr.Data.(model.Preferences)
+				data["display_font"] = getPref("selected_font", prefs)
+				data["24_hour_clock"] = getPref("use_military_time", prefs)
+				data["teammate_name_display"] = getPref("name_format", prefs)
+				data["collapse_link_previews"] = getPref("collapse_previews", prefs)
+				data["message_display"] = getPref("message_display", prefs)
+				data["channel_display_mode"] = getPref("channel_display_mode", prefs)
+			}
+
+			if opr := <-api.Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP); opr.Err == nil {
+				data["oauth_authorized_apps_count"] = len(opr.Data.(model.Preferences))
+			}
+
+			if apr := <-api.Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS); apr.Err == nil {
+				prefs := apr.Data.(model.Preferences)
+				data["advanced_send_message_ctrl_enter"] = getPref("send_on_ctrl_enter", prefs)
+				data["advanced_enable_post_formatting"] = getPref("formatting", prefs)
+				data["advanced_enable_join_leave_messages"] = getPref("join_leave", prefs)
+				data["feature_enabled_embed_preview"] = getPref("feature_enabled_embed_preview", prefs)
+				data["feature_enabled_markdown_preview"] = getPref("feature_enabled_markdown_preview", prefs)
+			}
+
+			SendDiagnostic(TRACK_USER, data)
+		}
 	}
 }
 

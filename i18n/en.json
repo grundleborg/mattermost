@@ -4120,6 +4120,10 @@
     "translation": "We couldn't get channel type counts"
   },
   {
+    "id": "store.sql_channel.analytics_type_count_for_user.app_error",
+    "translation": "We couldn't get channel type counts"
+  },
+  {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
     "translation": "We couldn't get deleted channel type counts"
   },
@@ -4922,6 +4926,10 @@
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "We couldn't get the unique user count"
+  },
+  {
+    "id": "store.sql_user.analytics_get_users_with_team_count.app_error",
+    "translation": "We couldn't get the users with team count"
   },
   {
     "id": "store.sql_user.get.app_error",

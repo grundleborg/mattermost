@@ -1285,3 +1285,25 @@ func (s SqlChannelStore) AnalyticsGetAll() StoreChannel {
 
 	return storeChannel
 }
+
+func (s SqlChannelStore) AnalyticsTypeCountForUser(userId string, channelType string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		query := "SELECT COUNT(m.ChannelId) Value FROM ChannelMembers m JOIN Channels c ON c.Id = m.ChannelId WHERE c.Type = :ChannelType AND m.UserId = :UserId GROUP BY m.UserId;"
+
+		v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"UserId": userId, "ChannelType": channelType})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.AnalyticsTypeCount", "store.sql_channel.analytics_type_count_for_user.app_error", nil, err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

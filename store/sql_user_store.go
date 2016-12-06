@@ -1365,3 +1365,24 @@ func (us SqlUserStore) AnalyticsGetInactiveUsersCount() StoreChannel {
 
 	return storeChannel
 }
+
+func (us SqlUserStore) AnalyticsGetUsersWithTeamCount() StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.UserWithTeamCount
+		if _, err := us.GetReplica().Select(&data, "SELECT u.*, COUNT(t.TeamId) TeamCount FROM Users u LEFT JOIN TeamMembers t ON t.UserId = u.Id GROUP BY u.Id"); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.GetAll", "store.sql_user.get_users_with_teams_count.app_error", nil, err.Error())
+		}
+
+		result.Data = data
+
+		storeChannel <- result
+		close(storeChannel)
+
+	}()
+
+	return storeChannel
+}
