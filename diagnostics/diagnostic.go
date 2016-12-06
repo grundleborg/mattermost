@@ -362,6 +362,7 @@ func trackUsers() {
 				data["advanced_enable_join_leave_messages"] = getPref("join_leave", prefs)
 				data["feature_enabled_embed_preview"] = getPref("feature_enabled_embed_preview", prefs)
 				data["feature_enabled_markdown_preview"] = getPref("feature_enabled_markdown_preview", prefs)
+				data["feature_enabled_webrtc_preview"] = getPref("feature_enabled_webrtc_preview", prefs)
 			}
 
 			SendDiagnostic(TRACK_USER, data)
