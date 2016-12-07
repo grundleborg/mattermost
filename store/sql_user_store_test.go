@@ -1477,3 +1477,101 @@ func TestUserStoreSearch(t *testing.T) {
 		}
 	}
 }
+
+func TestUserStoreAnalyticsGetInactiveUsersCount(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+
+	var count int64
+
+	if result := <-store.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		count = result.Data.(int64)
+	}
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.DeleteAt = model.GetMillis()
+	Must(store.User().Save(u2))
+
+	if result := <-store.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		newCount := result.Data.(int64)
+		if count != newCount-1 {
+			t.Fatal("Expected 1 more inactive users but found otherwise.", count, newCount)
+		}
+	}
+}
+
+func TestUserStoreAnalyticsGetUsersWithTeamCount(t *testing.T) {
+	Setup()
+
+	u1 := model.User{}
+	u1.Email = model.NewId()
+	u1.Username = model.NewId()
+
+	if err := (<-store.User().Save(&u1)).Err; err != nil {
+		t.Fatal("couldn't save user", err)
+	}
+
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
+	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
+
+	if result := <-store.User().AnalyticsGetUsersWithTeamCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		users := result.Data.([]*model.UserWithTeamCount)
+		for _, user := range users {
+			if user.Id == u1.Id {
+				if user.TeamCount == 2 {
+					return
+				} else {
+					t.Fatal("Expected user to be in 2 teams but was in", user.TeamCount)
+				}
+			}
+		}
+		t.Fatal("Could not find test user in results ", u1.Id)
+	}
+}
+
+func TestUserStoreAnalyticsGetSystemAdminCount(t *testing.T) {
+	Setup()
+
+	var countBefore int64
+	if result := <-store.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		countBefore = result.Data.(int64)
+	}
+
+	u1 := model.User{}
+	u1.Email = model.NewId()
+	u1.Username = model.NewId()
+	u1.Roles = "system_user system_admin"
+
+	u2 := model.User{}
+	u2.Email = model.NewId()
+	u2.Username = model.NewId()
+
+	if err := (<-store.User().Save(&u1)).Err; err != nil {
+		t.Fatal("couldn't save user", err)
+	}
+
+	if err := (<-store.User().Save(&u2)).Err; err != nil {
+		t.Fatal("couldn't save user", err)
+	}
+
+	if result := <-store.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		// We expect to find 1 more system admin than there was at the start of this test function.
+		if count := result.Data.(int64); count != countBefore+1 {
+			t.Fatal("Did not get the expected number of system admins. Expected, got: ", countBefore+1, count)
+		}
+	}
+}

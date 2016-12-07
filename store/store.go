@@ -79,6 +79,7 @@ type TeamStore interface {
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel
+	AnalyticsGetTeamAdminCount(teamId string) StoreChannel
 }
 
 type ChannelStore interface {
@@ -126,6 +127,9 @@ type ChannelStore interface {
 	SearchInTeam(teamId string, term string) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
+	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
+	AnalyticsGetAll() StoreChannel
+	AnalyticsTypeCountForUser(userId string, channelType string) StoreChannel
 }
 
 type PostStore interface {
@@ -190,6 +194,9 @@ type UserStore interface {
 	Search(teamId string, term string, options map[string]bool) StoreChannel
 	SearchInChannel(channelId string, term string, options map[string]bool) StoreChannel
 	SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel
+	AnalyticsGetInactiveUsersCount() StoreChannel
+	AnalyticsGetUsersWithTeamCount() StoreChannel
+	AnalyticsGetSystemAdminCount() StoreChannel
 }
 
 type SessionStore interface {
@@ -204,6 +211,7 @@ type SessionStore interface {
 	UpdateRoles(userId string, roles string) StoreChannel
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) StoreChannel
 	AnalyticsSessionCount() StoreChannel
+	AnalyticsGetAllSessions() StoreChannel
 }
 
 type AuditStore interface {
