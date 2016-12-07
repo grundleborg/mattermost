@@ -38,6 +38,11 @@ type Channel struct {
 	CreatorId     string `json:"creator_id"`
 }
 
+type ChannelWithMemberCount struct {
+	Channel
+	MemberCount int64 `json:"member_count"`
+}
+
 func (o *Channel) ToJson() string {
 	b, err := json.Marshal(o)
 	if err != nil {

@@ -61,6 +61,11 @@ type User struct {
 	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
 }
 
+type UserWithTeamCount struct {
+	User
+	TeamCount int64 `json:"team_count"`
+}
+
 // IsValid validates the user and returns an error if it isn't configured
 // correctly.
 func (u *User) IsValid() *AppError {
