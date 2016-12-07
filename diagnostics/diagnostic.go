@@ -6,11 +6,13 @@ package diagnostics
 import (
 	"runtime"
 
+	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/segmentio/analytics-go"
 	"strings"
+	"gopkg.in/square/go-jose.v1/json"
 )
 
 const (
@@ -338,7 +340,15 @@ func trackUsers() {
 				data["direct_channels_joined"] = dmr.Data.(int64)
 			}
 
-			// TODO: Theme.
+			if tpr := <-api.Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_THEME); tpr.Err == nil {
+				themeData := getPref("", tpr.Data.(model.Preferences))
+
+				decoder := json.NewDecoder(strings.NewReader(themeData))
+				var theme map[string]string
+				if err := decoder.Decode(&theme); err == nil {
+					data["theme"] = theme["type"]
+				}
+			}
 
 			if dpr := <-api.Srv.Store.Preference().GetCategory(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS); dpr.Err == nil {
 				prefs := dpr.Data.(model.Preferences)
