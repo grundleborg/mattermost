@@ -16,6 +16,7 @@ import (
 
 	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/diagnostics"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/manualtesting"
 	"github.com/mattermost/platform/model"
@@ -161,17 +162,17 @@ func doSecurity() {
 
 				v := url.Values{}
 
-				v.Set(utils.PROP_DIAGNOSTIC_ID, utils.CfgDiagnosticId)
-				v.Set(utils.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
-				v.Set(utils.PROP_DIAGNOSTIC_ENTERPRISE_READY, model.BuildEnterpriseReady)
-				v.Set(utils.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
-				v.Set(utils.PROP_DIAGNOSTIC_OS, runtime.GOOS)
-				v.Set(utils.PROP_DIAGNOSTIC_CATEGORY, utils.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
+				v.Set(diagnostics.PROP_DIAGNOSTIC_ID, utils.CfgDiagnosticId)
+				v.Set(diagnostics.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
+				v.Set(diagnostics.PROP_DIAGNOSTIC_ENTERPRISE_READY, model.BuildEnterpriseReady)
+				v.Set(diagnostics.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
+				v.Set(diagnostics.PROP_DIAGNOSTIC_OS, runtime.GOOS)
+				v.Set(diagnostics.PROP_DIAGNOSTIC_CATEGORY, diagnostics.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
 
 				if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
-					v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "1")
+					v.Set(diagnostics.PROP_DIAGNOSTIC_UNIT_TESTS, "1")
 				} else {
-					v.Set(utils.PROP_DIAGNOSTIC_UNIT_TESTS, "0")
+					v.Set(diagnostics.PROP_DIAGNOSTIC_UNIT_TESTS, "0")
 				}
 
 				systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
@@ -182,18 +183,18 @@ func doSecurity() {
 				}
 
 				if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-					v.Set(utils.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+					v.Set(diagnostics.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 
 				if ucr := <-api.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
-					v.Set(utils.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+					v.Set(diagnostics.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 
 				if tcr := <-api.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-					v.Set(utils.PROP_DIAGNOSTIC_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
+					v.Set(diagnostics.PROP_DIAGNOSTIC_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
 				}
 
-				res, err := http.Get(utils.DIAGNOSTIC_URL + "/security?" + v.Encode())
+				res, err := http.Get(diagnostics.DIAGNOSTIC_URL + "/security?" + v.Encode())
 				if err != nil {
 					l4g.Error(utils.T("mattermost.security_info.error"))
 					return
@@ -212,7 +213,7 @@ func doSecurity() {
 							} else {
 								users := results.Data.(map[string]*model.User)
 
-								resBody, err := http.Get(utils.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
+								resBody, err := http.Get(diagnostics.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
 								if err != nil {
 									l4g.Error(utils.T("mattermost.security_bulletin.error"))
 									return
@@ -243,43 +244,6 @@ func doSecurity() {
 
 func doDiagnostics() {
 	if *utils.Cfg.LogSettings.EnableDiagnostics {
-		utils.SendGeneralDiagnostics()
-		sendServerDiagnostics()
+		diagnostics.SendDailyDiagnostics()
 	}
-}
-
-func sendServerDiagnostics() {
-	var userCount int64
-	var activeUserCount int64
-	var teamCount int64
-
-	if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-		userCount = ucr.Data.(int64)
-	}
-
-	if ucr := <-api.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
-		activeUserCount = ucr.Data.(int64)
-	}
-
-	if tcr := <-api.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-		teamCount = tcr.Data.(int64)
-	}
-
-	utils.SendDiagnostic(utils.TRACK_ACTIVITY, map[string]interface{}{
-		"registered_users": userCount,
-		"active_users":     activeUserCount,
-		"teams":            teamCount,
-	})
-
-	edition := model.BuildEnterpriseReady
-	version := model.CurrentVersion
-	database := utils.Cfg.SqlSettings.DriverName
-	operatingSystem := runtime.GOOS
-
-	utils.SendDiagnostic(utils.TRACK_VERSION, map[string]interface{}{
-		"edition":          edition,
-		"version":          version,
-		"database":         database,
-		"operating_system": operatingSystem,
-	})
 }
