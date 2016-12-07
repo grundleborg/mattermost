@@ -280,15 +280,21 @@ func trackChannels() {
 
 func trackLicense() {
 	if utils.IsLicensed {
-		SendDiagnostic(TRACK_LICENSE, map[string]interface{}{
+		data := map[string]interface{}{
 			"name":     utils.License.Customer.Name,
 			"company":  utils.License.Customer.Company,
 			"issued":   utils.License.IssuedAt,
 			"start":    utils.License.StartsAt,
 			"expire":   utils.License.ExpiresAt,
 			"users":    *utils.License.Features.Users,
-			"features": utils.License.Features.ToMap(),
-		})
+		}
+
+		features := utils.License.Features.ToMap()
+		for featureName, featureValue := range features {
+			data["feature_"+featureName] = featureValue
+		}
+
+		SendDiagnostic(TRACK_LICENSE, data)
 	}
 }
 
