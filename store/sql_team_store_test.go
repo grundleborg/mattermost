@@ -529,3 +529,31 @@ func TestTeamStoreMemberCount(t *testing.T) {
 		}
 	}
 }
+
+func TestTeamStoreAnalyticsGetTeamAdminCount(t *testing.T) {
+	Setup()
+
+	u1 := &model.User{}
+	u1.Email = model.NewId()
+	Must(store.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Email = model.NewId()
+	u2.DeleteAt = 1
+	Must(store.User().Save(u2))
+
+	teamId1 := model.NewId()
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id, Roles: "team_user team_admin"}
+	Must(store.Team().SaveMember(m1))
+
+	m2 := &model.TeamMember{TeamId: teamId1, UserId: u2.Id, Roles: "team_user"}
+	Must(store.Team().SaveMember(m2))
+
+	if result := <-store.Team().AnalyticsGetTeamAdminCount(teamId1); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		if result.Data.(int64) != 1 {
+			t.Fatal("wrong count")
+		}
+	}
+}

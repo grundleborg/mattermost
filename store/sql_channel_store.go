@@ -1079,6 +1079,32 @@ func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) S
 	return storeChannel
 }
 
+func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		query := "SELECT COUNT(Id) AS Value FROM Channels WHERE Type = :ChannelType AND DeleteAt > 0"
+
+		if len(teamId) > 0 {
+			query += " AND TeamId = :TeamId"
+		}
+
+		v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId, "ChannelType": channelType})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.AnalyticsDeletedTypeCount", "store.sql_channel.analytics_deleted_type_count.app_error", nil, err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
 func (s SqlChannelStore) ExtraUpdateByUser(userId string, time int64) StoreChannel {
 	storeChannel := make(StoreChannel, 1)
 
@@ -1236,4 +1262,48 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	}
 
 	return result
+}
+
+func (s SqlChannelStore) AnalyticsGetAll() StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		var data []*model.ChannelWithMemberCount
+		_, err := s.GetReplica().Select(&data, "SELECT c.*, COUNT(m.ChannelId) AS MemberCount FROM Channels c LEFT JOIN ChannelMembers m ON m.ChannelId = c.Id GROUP BY c.Id;")
+
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.AnalyticsGetAll", "store.sql_channel.analytics_get_all.app_error", nil, "err="+err.Error())
+		} else {
+			result.Data = data
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
+
+func (s SqlChannelStore) AnalyticsTypeCountForUser(userId string, channelType string) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		query := "SELECT COUNT(m.ChannelId) Value FROM ChannelMembers m JOIN Channels c ON c.Id = m.ChannelId WHERE c.Type = :ChannelType AND m.UserId = :UserId GROUP BY m.UserId;"
+
+		v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"UserId": userId, "ChannelType": channelType})
+		if err != nil {
+			result.Err = model.NewLocAppError("SqlChannelStore.AnalyticsTypeCount", "store.sql_channel.analytics_type_count_for_user.app_error", nil, err.Error())
+		} else {
+			result.Data = v
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
 }

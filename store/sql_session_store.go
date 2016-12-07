@@ -343,3 +343,25 @@ func (me SqlSessionStore) AnalyticsSessionCount() StoreChannel {
 
 	return storeChannel
 }
+
+func (me SqlSessionStore) AnalyticsGetAllSessions() StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+
+		result := StoreResult{}
+		var sessions []*model.Session
+
+		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE ExpiresAt != 0 AND :ExpiresAt <= ExpiresAt", map[string]interface{}{"ExpiresAt": model.GetMillis()}); err != nil {
+			result.Err = model.NewLocAppError("SqlSessionStore.AnalyticsGetAllSessions", "store.sql_session.analytics_get_all_sessions.app_error", nil, err.Error())
+		} else {
+
+			result.Data = sessions
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}
