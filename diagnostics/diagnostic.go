@@ -6,7 +6,6 @@ package diagnostics
 import (
 	"runtime"
 
-	l4g "github.com/alecthomas/log4go"
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
