@@ -9,6 +9,7 @@ import ChannelStore from 'stores/channel_store.jsx';
 import PreferenceStore from 'stores/preference_store.jsx';
 
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import Client from 'client/web_client.jsx';
 import * as AsyncClient from 'utils/async_client.jsx';
@@ -120,6 +121,7 @@ export function openDirectChannelToUser(user, success, error) {
     const channel = ChannelStore.getByName(channelName);
 
     if (channel) {
+        trackEvent('api', 'api_channels_join_direct');
         PreferenceStore.setPreference(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, user.id, 'true');
         loadProfilesAndTeamMembersForDMSidebar();
 

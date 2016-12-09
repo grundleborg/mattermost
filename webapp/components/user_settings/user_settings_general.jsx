@@ -16,6 +16,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import {intlShape, injectIntl, defineMessages, FormattedMessage, FormattedHTMLMessage, FormattedDate} from 'react-intl';
 import {updateUser} from 'actions/user_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -127,6 +128,8 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.username = username;
 
+        trackEvent('api', 'api_users_update_username');
+
         this.submitUser(user, Constants.UserUpdateEvents.USERNAME, false);
     }
 
@@ -142,6 +145,8 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.nickname = nickname;
+
+        trackEvent('api', 'api_users_update_nickname');
 
         this.submitUser(user, Constants.UserUpdateEvents.NICKNAME, false);
     }
@@ -160,6 +165,8 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.first_name = firstName;
         user.last_name = lastName;
+
+        trackEvent('api', 'api_users_update_fullname');
 
         this.submitUser(user, Constants.UserUpdateEvents.FULLNAME, false);
     }
@@ -189,6 +196,7 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.email = email;
+        trackEvent('api', 'api_users_update_email');
         this.submitUser(user, Constants.UserUpdateEvents.EMAIL, true);
     }
 

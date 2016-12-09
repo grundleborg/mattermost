@@ -62,7 +62,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
 
     render() {
         deprecatedTrack('signup', 'signup_team_02_name');
-        trackEvent('signup', 'signup_team_02_name');
+        trackEvent('signup', 'signup_team_01_name');
 
         var nameError = null;
         var nameDivClass = 'form-group';

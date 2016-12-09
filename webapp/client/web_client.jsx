@@ -123,6 +123,7 @@ class WebClientClass extends Client {
             (data) => {
                 this.deprecatedTrack('api', 'api_users_login_success', '', 'login_id', loginId);
                 this.trackEvent('api', 'api_users_login_success');
+                this.trackEvent('api', 'api_users_login_ldap_success');
                 BrowserStore.signalLogin();
 
                 if (success) {
@@ -132,6 +133,7 @@ class WebClientClass extends Client {
             (err) => {
                 this.deprecatedTrack('api', 'api_users_login_fail', '', 'login_id', loginId);
                 this.trackEvent('api', 'api_users_login_fail');
+                this.trackEvent('api', 'api_users_login_ldap_fail');
                 if (error) {
                     error(err);
                 }

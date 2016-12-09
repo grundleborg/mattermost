@@ -795,7 +795,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateUserRoles', success, error));
 
         this.deprecatedTrack('api', 'api_users_update_user_roles');
-        this.trackEvent('api', 'api_users_update_user_roles');
+        this.trackEvent('api', 'api_users_update_roles');
     }
 
     updateTeamMemberRoles(teamId, userId, newRoles, success, error) {
@@ -932,7 +932,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'ldapToEmail', success, error));
 
         this.deprecatedTrack('api', 'api_users_oauth_to_email');
-        this.trackEvent('api', 'api_users_oauth_to_email');
+        this.trackEvent('api', 'api_users_ldap_to_email');
     }
 
     getInitialLoad(success, error) {
@@ -990,6 +990,7 @@ export default class Client {
 
         this.deprecatedTrack('api', 'api_users_login', '', 'login_id', loginId);
         this.trackEvent('api', 'api_users_login');
+        this.trackEvent('api', 'api_users_login_ldap');
     }
 
     doLogin(outgoingData, success, error) {
@@ -1277,6 +1278,8 @@ export default class Client {
             accept('application/json').
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'createDirectChannel', success, error));
+
+        this.trackEvent('api', 'api_channels_create_direct');
     }
 
     updateChannel(channel, success, error) {
@@ -1435,6 +1438,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
+
+        this.trackEvent('api', 'api_channels_more');
     }
 
     getMoreChannelsPage(offset, limit, success, error) {
@@ -1444,6 +1449,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getMoreChannelsPage', success, error));
+
+        this.trackEvent('api', 'api_channels_more_page');
     }
 
     searchMoreChannels(term, success, error) {
@@ -1779,6 +1786,8 @@ export default class Client {
             field('client_ids', clientId).
             accept('application/json').
             end(this.handleResponse.bind(this, 'uploadFile', success, error));
+
+        this.trackEvent('api', 'api_files_upload');
     }
 
     getFile(fileId, success, error) {

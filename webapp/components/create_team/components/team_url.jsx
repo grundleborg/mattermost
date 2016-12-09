@@ -109,7 +109,7 @@ export default class TeamUrl extends React.Component {
                 createTeam(teamSignup.team,
                     () => {
                         deprecatedTrack('signup', 'signup_team_08_complete');
-                        trackEvent('signup', 'signup_team_08_complete');
+                        trackEvent('signup', 'signup_team_03_complete');
                     },
                     (err) => {
                         this.setState({nameError: err.message});
@@ -130,7 +130,7 @@ export default class TeamUrl extends React.Component {
 
     render() {
         deprecatedTrack('signup', 'signup_team_03_url');
-        trackEvent('signup', 'signup_team_03_url');
+        trackEvent('signup', 'signup_team_02_url');
 
         let nameError = null;
         let nameDivClass = 'form-group';
