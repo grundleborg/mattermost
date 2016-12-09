@@ -21,6 +21,7 @@ import * as Utils from 'utils/utils.jsx';
 import * as ChannelUtils from 'utils/channel_utils.jsx';
 import * as ChannelActions from 'actions/channel_actions.jsx';
 
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import {FormattedMessage, FormattedHTMLMessage} from 'react-intl';
@@ -343,6 +344,7 @@ export default class Sidebar extends React.Component {
 
     showMoreChannelsModal() {
         this.setState({showMoreChannelsModal: true});
+        trackEvent('ui', 'ui_channels_more_public');
     }
 
     hideMoreChannelsModal() {
@@ -358,6 +360,7 @@ export default class Sidebar extends React.Component {
     }
 
     showMoreDirectChannelsModal() {
+        trackEvent('ui', 'ui_channels_more_direct');
         this.setState({showDirectChannelsModal: true});
     }
 

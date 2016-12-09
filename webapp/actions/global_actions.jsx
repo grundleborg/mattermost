@@ -15,6 +15,7 @@ import SearchStore from 'stores/search_store.jsx';
 import {handleNewPost, loadPosts, loadPostsBefore, loadPostsAfter} from 'actions/post_actions.jsx';
 import {loadProfilesAndTeamMembersForDMSidebar} from 'actions/user_actions.jsx';
 import {loadChannelsForCurrentUser} from 'actions/channel_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
 const ActionTypes = Constants.ActionTypes;
@@ -26,7 +27,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import en from 'i18n/en.json';
 import * as I18n from 'i18n/i18n.jsx';
-import {trackPage} from 'actions/analytics_actions.jsx';
+import {deprecatedTrackPage} from 'actions/analytics_actions.jsx';
 import {browserHistory} from 'react-router/es6';
 
 export function emitChannelClickEvent(channel) {
@@ -49,7 +50,7 @@ export function emitChannelClickEvent(channel) {
             AsyncClient.getChannelStats(chan.id, true);
             AsyncClient.updateLastViewedAt(chan.id);
             loadPosts(chan.id);
-            trackPage();
+            deprecatedTrackPage();
         });
 
         AppDispatcher.handleViewAction({
@@ -497,6 +498,8 @@ export function emitSearchMentionsEvent(user) {
 
         terms = termKeys.join(' ');
     }
+
+    trackEvent('api', 'api_posts_search_mention');
 
     AppDispatcher.handleServerAction({
         type: ActionTypes.RECEIVED_SEARCH_TERM,
