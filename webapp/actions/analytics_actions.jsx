@@ -3,10 +3,12 @@
 
 import Client from 'client/web_client.jsx';
 
-export function track(category, action, label, property, value) {
-    Client.track(category, action, label, property, value);
+// Deprecated. This method will be removed in 3.7 as it is part of the Segment Analytics feature.
+export function deprecatedTrack(category, action, label, property, value) {
+    Client.deprecatedTrack(category, action, label, property, value);
 }
 
-export function trackPage() {
-    Client.trackPage();
+// Deprecated. This method will be removed in 3.7 as it is part of the Segment Analytics feature.
+export function deprecatedTrackPage() {
+    Client.deprecatedTrackPage();
 }

@@ -30,15 +30,45 @@ class WebClientClass extends Client {
         this.setTeamId(TeamStore.getCurrentId());
     }
 
-    track(category, action, label, property, value) {
-        if (global.window && global.window.analytics) {
-            global.window.analytics.track(action, {category, label, property, value});
+    // Deprecated. This method will be removed in 3.7 as it is part of the Segment Analytics feature.
+    deprecatedTrack(category, action, label, property, value) {
+        if (window.mm_config.SegmentDeveloperKey != null && window.mm_config.SegmentDeveloperKey !== '') {
+            if (global.window && global.window.analytics) {
+                global.window.analytics.track(action, {category, label, property, value});
+            }
         }
     }
 
-    trackPage() {
+    // Deprecated. This method will be removed in 3.7 as it is part of the Segment Analytics feature.
+    deprecatedTrackPage() {
+        if (window.mm_config.SegmentDeveloperKey != null && window.mm_config.SegmentDeveloperKey !== '') {
+            if (global.window && global.window.analytics) {
+                global.window.analytics.page();
+            }
+        }
+    }
+
+    trackEvent(category, event, props) {
+        if (window.mm_config.SegmentDeveloperKey != null && window.mm_config.SegmentDeveloperKey !== '') {
+            // Segment is in use for analytics, so diagnostics is disabled, making this function a no-op.
+            return;
+        }
+
         if (global.window && global.window.analytics) {
-            global.window.analytics.page();
+            const properties = Object.assign({category, type: event}, props);
+            const options = {
+                context: {
+                    ip: '0.0.0.0'
+                },
+                page: {
+                    path: '',
+                    referrer: '',
+                    search: '',
+                    title: '',
+                    url: ''
+                }
+            };
+            global.window.analytics.track('event', properties, options);
         }
     }
 
@@ -74,7 +104,8 @@ class WebClientClass extends Client {
             password,
             token,
             (data) => {
-                this.track('api', 'api_users_login_success', '', 'login_id', loginId);
+                this.deprecatedTrack('api', 'api_users_login_success', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_success');
                 BrowserStore.signalLogin();
 
                 if (success) {
@@ -82,7 +113,8 @@ class WebClientClass extends Client {
                 }
             },
             (err) => {
-                this.track('api', 'api_users_login_fail', '', 'login_id', loginId);
+                this.deprecatedTrack('api', 'api_users_login_fail', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_fail');
                 if (error) {
                     error(err);
                 }
@@ -96,7 +128,9 @@ class WebClientClass extends Client {
             password,
             token,
             (data) => {
-                this.track('api', 'api_users_login_success', '', 'login_id', loginId);
+                this.deprecatedTrack('api', 'api_users_login_success', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_success');
+                this.trackEvent('api', 'api_users_login_ldap_success');
                 BrowserStore.signalLogin();
 
                 if (success) {
@@ -104,7 +138,9 @@ class WebClientClass extends Client {
                 }
             },
             (err) => {
-                this.track('api', 'api_users_login_fail', '', 'login_id', loginId);
+                this.deprecatedTrack('api', 'api_users_login_fail', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_fail');
+                this.trackEvent('api', 'api_users_login_ldap_fail');
                 if (error) {
                     error(err);
                 }
