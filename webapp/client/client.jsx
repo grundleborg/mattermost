@@ -549,7 +549,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'createTeam', success, error));
 
         this.deprecatedTrack('api', 'api_users_create', '', 'email', team.name);
-        this.trackEvent('api', 'api_users_create');
+        this.trackEvent('api', 'api_teams_create');
     }
 
     updateTeam(team, success, error) {
@@ -718,6 +718,14 @@ export default class Client {
 
         if (inviteId) {
             url += '&iid=' + encodeURIComponent(inviteId);
+        }
+
+        if (emailHash) {
+            this.trackEvent('api', 'api_users_create_email');
+        } else if (inviteId) {
+            this.trackEvent('api', 'api_users_create_link');
+        } else {
+            this.trackEvent('api', 'api_users_create_spontaneous');
         }
 
         request.
@@ -1104,6 +1112,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfiles', success, error));
+
+        this.trackEvent('api', 'api_profiles_get');
     }
 
     getProfilesInTeam(teamId, offset, limit, success, error) {
@@ -1113,6 +1123,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesInTeam', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_in_team');
     }
 
     getProfilesInChannel(channelId, offset, limit, success, error) {
@@ -1122,6 +1134,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesInChannel', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_in_channel');
     }
 
     getProfilesNotInChannel(channelId, offset, limit, success, error) {
@@ -1131,6 +1145,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesNotInChannel', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_not_in_channel');
     }
 
     getProfilesByIds(userIds, success, error) {
@@ -1141,6 +1157,8 @@ export default class Client {
             accept('application/json').
             send(userIds).
             end(this.handleResponse.bind(this, 'getProfilesByIds', success, error));
+
+        this.trackEvent('api', 'api_profiles_get_by_ids');
     }
 
     searchUsers(term, teamId, options, success, error) {
@@ -1207,6 +1225,8 @@ export default class Client {
             accept('application/json').
             send({channel_id: id}).
             end(this.handleResponse.bind(this, 'setActiveChannel', success, error));
+
+        this.trackEvent('api', 'api_channels_set_active');
     }
 
     verifyEmail(uid, hid, success, error) {
@@ -1648,6 +1668,22 @@ export default class Client {
             this.deprecatedTrack('api', 'api_posts_mentions');
             this.trackEvent('api', 'api_posts_mentions');
         }
+
+        if (post.message.match(/\s@all/)) {
+            this.trackEvent('api', 'api_posts_mentions_all')
+        }
+
+        if (post.message.match(/\s@channel/)) {
+            this.trackEvent('api', 'api_posts_mentions_channel')
+        }
+
+        if (post.message.match(/\s@here/)) {
+            this.trackEvent('api', 'api_posts_mentions_here')
+        }
+
+        if (post.parent_id != null && post.parent_id !== '') {
+            this.trackEvent('api', 'api_posts_replied');
+        }
     }
 
     // This is a temporary route to get around a problem with the permissions system that
@@ -1659,6 +1695,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPermalinkTmp', success, error));
+
+        this.trackEvent('api', 'api_channels_permalink');
     }
 
     getPostById(postId, success, error) {
@@ -1746,6 +1784,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPostsBefore', success, error));
+
+        this.trackEvent('api', 'api_posts_get_before');
     }
 
     getPostsAfter(channelId, postId, offset, numPost, success, error) {
@@ -1755,6 +1795,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPostsAfter', success, error));
+
+        this.trackEvent('api', 'api_posts_get_after');
     }
 
     getFlaggedPosts(offset, limit, success, error) {
@@ -1764,6 +1806,8 @@ export default class Client {
             type('application/json').
             accept('application/json').
             end(this.handleResponse.bind(this, 'getFlaggedPosts', success, error));
+
+        this.trackEvent('api', 'api_posts_get_flagged');
     }
 
     getFileInfosForPost(channelId, postId, success, error) {
@@ -1882,6 +1926,8 @@ export default class Client {
         accept('application/json').
         send({id}).
         end(this.handleResponse.bind(this, 'deleteOAuthApp', success, error));
+
+        this.trackEvent('api', 'api_apps_delete');
     }
 
     getOAuthAppInfo(id, success, error) {
@@ -2065,6 +2111,8 @@ export default class Client {
             attach('image', image, image.name).
             field('emoji', JSON.stringify(emoji)).
             end(this.handleResponse.bind(this, 'addEmoji', success, error));
+
+        this.trackEvent('api', 'api_emoji_custom_add');
     }
 
     deleteEmoji(id, success, error) {
@@ -2074,6 +2122,8 @@ export default class Client {
             accept('application/json').
             send({id}).
             end(this.handleResponse.bind(this, 'deleteEmoji', success, error));
+
+        this.trackEvent('api', 'api_emoji_custom_delete');
     }
 
     getCustomEmojiImageUrl(id) {
@@ -2123,6 +2173,8 @@ export default class Client {
             accept('application/json').
             send(reaction).
             end(this.handleResponse.bind(this, 'saveReaction', success, error));
+
+        this.trackEvent('api', 'api_reactions_save');
     }
 
     deleteReaction(channelId, reaction, success, error) {
@@ -2132,6 +2184,8 @@ export default class Client {
             accept('application/json').
             send(reaction).
             end(this.handleResponse.bind(this, 'deleteReaction', success, error));
+
+        this.trackEvent('api', 'api_reactions_delete');
     }
 
     listReactions(channelId, postId, success, error) {

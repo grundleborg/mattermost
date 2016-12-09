@@ -175,10 +175,12 @@ export function openDirectChannelToUser(user, success, error) {
 }
 
 export function markFavorite(channelId) {
+    trackEvent('api', 'api_channels_favorited');
     AsyncClient.savePreference(Preferences.CATEGORY_FAVORITE_CHANNEL, channelId, 'true');
 }
 
 export function unmarkFavorite(channelId) {
+    trackEvent('api', 'api_channels_unfavorited');
     const pref = {
         user_id: UserStore.getCurrentId(),
         category: Preferences.CATEGORY_FAVORITE_CHANNEL,
