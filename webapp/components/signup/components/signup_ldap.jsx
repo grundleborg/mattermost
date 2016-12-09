@@ -4,7 +4,7 @@
 import FormError from 'components/form_error.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
-import {track} from 'actions/analytics_actions.jsx';
+import {deprecatedTrack} from 'actions/analytics_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import Client from 'client/web_client.jsx';
@@ -97,7 +97,7 @@ export default class SignupLdap extends React.Component {
     }
 
     render() {
-        track('signup', 'signup_user_01_welcome');
+        deprecatedTrack('signup', 'signup_user_01_welcome');
 
         let ldapIdPlaceholder;
         if (global.window.mm_config.LdapLoginFieldName) {

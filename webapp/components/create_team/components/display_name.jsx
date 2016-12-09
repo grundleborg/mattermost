@@ -1,7 +1,7 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {track} from 'actions/analytics_actions.jsx';
+import {deprecatedTrack} from 'actions/analytics_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -60,7 +60,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
     }
 
     render() {
-        track('signup', 'signup_team_02_name');
+        deprecatedTrack('signup', 'signup_team_02_name');
 
         var nameError = null;
         var nameDivClass = 'form-group';
