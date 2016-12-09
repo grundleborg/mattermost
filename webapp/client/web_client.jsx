@@ -98,6 +98,7 @@ class WebClientClass extends Client {
             token,
             (data) => {
                 this.deprecatedTrack('api', 'api_users_login_success', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_success');
                 BrowserStore.signalLogin();
 
                 if (success) {
@@ -106,6 +107,7 @@ class WebClientClass extends Client {
             },
             (err) => {
                 this.deprecatedTrack('api', 'api_users_login_fail', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_fail');
                 if (error) {
                     error(err);
                 }
@@ -120,6 +122,7 @@ class WebClientClass extends Client {
             token,
             (data) => {
                 this.deprecatedTrack('api', 'api_users_login_success', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_success');
                 BrowserStore.signalLogin();
 
                 if (success) {
@@ -128,6 +131,7 @@ class WebClientClass extends Client {
             },
             (err) => {
                 this.deprecatedTrack('api', 'api_users_login_fail', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_fail');
                 if (error) {
                     error(err);
                 }

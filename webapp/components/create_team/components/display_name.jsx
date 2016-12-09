@@ -2,6 +2,7 @@
 // See License.txt for license information.
 
 import {deprecatedTrack} from 'actions/analytics_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
 import Constants from 'utils/constants.jsx';
@@ -61,6 +62,7 @@ export default class TeamSignupDisplayNamePage extends React.Component {
 
     render() {
         deprecatedTrack('signup', 'signup_team_02_name');
+        trackEvent('signup', 'signup_team_02_name');
 
         var nameError = null;
         var nameDivClass = 'form-group';

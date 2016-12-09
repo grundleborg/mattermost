@@ -5,6 +5,7 @@ import * as Utils from 'utils/utils.jsx';
 
 import {checkIfTeamExists, createTeam} from 'actions/team_actions.jsx';
 import {deprecatedTrack} from 'actions/analytics_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import Constants from 'utils/constants.jsx';
 
 import logoImage from 'images/logo.png';
@@ -108,6 +109,7 @@ export default class TeamUrl extends React.Component {
                 createTeam(teamSignup.team,
                     () => {
                         deprecatedTrack('signup', 'signup_team_08_complete');
+                        trackEvent('signup', 'signup_team_08_complete');
                     },
                     (err) => {
                         this.setState({nameError: err.message});
@@ -128,6 +130,7 @@ export default class TeamUrl extends React.Component {
 
     render() {
         deprecatedTrack('signup', 'signup_team_03_url');
+        trackEvent('signup', 'signup_team_03_url');
 
         let nameError = null;
         let nameDivClass = 'form-group';

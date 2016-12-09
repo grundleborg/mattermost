@@ -5,6 +5,7 @@ import LoadingScreen from 'components/loading_screen.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
 import {deprecatedTrack} from 'actions/analytics_actions.jsx';
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import BrowserStore from 'stores/browser_store.jsx';
 
@@ -118,6 +119,7 @@ export default class SignupEmail extends React.Component {
 
     handleSignupSuccess(user, data) {
         deprecatedTrack('signup', 'signup_user_02_complete');
+        trackEvent('signup', 'signup_user_02_complete');
         Client.loginById(
             data.id,
             user.password,
@@ -402,6 +404,7 @@ export default class SignupEmail extends React.Component {
 
     render() {
         deprecatedTrack('signup', 'signup_user_01_welcome');
+        trackEvent('signup', 'signup_user_01_welcome');
 
         let serverError = null;
         if (this.state.serverError) {
