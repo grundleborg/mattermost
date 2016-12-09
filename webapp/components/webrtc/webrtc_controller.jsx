@@ -13,6 +13,7 @@ import SearchBox from '../search_bar.jsx';
 import WebrtcHeader from './components/webrtc_header.jsx';
 import ConnectingScreen from 'components/loading_screen.jsx';
 
+import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import * as WebrtcActions from 'actions/webrtc_actions.jsx';
 
 import * as Utils from 'utils/utils.jsx';
@@ -733,6 +734,7 @@ export default class WebrtcController extends React.Component {
     }
 
     doAnswer(jsep) {
+        trackEvent('api', 'api_users_webrtc_start');
         this.videocall.createAnswer({
             jsep,
             stream: this.localMedia,
@@ -747,6 +749,7 @@ export default class WebrtcController extends React.Component {
     }
 
     doHangup(error, manual) {
+        trackEvent('api', 'api_users_webrtc_end');
         if (this.videocall && this.state.callInProgress) {
             this.videocall.send({message: {request: 'hangup'}});
             this.videocall.hangup();

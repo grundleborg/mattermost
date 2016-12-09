@@ -29,16 +29,22 @@ class WebClientClass extends Client {
     onTeamStoreChanged() {
         this.setTeamId(TeamStore.getCurrentId());
     }
-
-    track(category, action, label, property, value) {
+    trackEvent(category, event, props) {
         if (global.window && global.window.analytics) {
-            global.window.analytics.track(action, {category, label, property, value});
-        }
-    }
-
-    trackPage() {
-        if (global.window && global.window.analytics) {
-            global.window.analytics.page();
+            const properties = Object.assign({category, type: event}, props);
+            const options = {
+                context: {
+                    ip: '0.0.0.0'
+                },
+                page: {
+                    path: '',
+                    referrer: '',
+                    search: '',
+                    title: '',
+                    url: ''
+                }
+            };
+            global.window.analytics.track('event', properties, options);
         }
     }
 
@@ -74,7 +80,7 @@ class WebClientClass extends Client {
             password,
             token,
             (data) => {
-                this.track('api', 'api_users_login_success', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_success');
                 BrowserStore.signalLogin();
 
                 if (success) {
@@ -82,7 +88,7 @@ class WebClientClass extends Client {
                 }
             },
             (err) => {
-                this.track('api', 'api_users_login_fail', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_fail');
                 if (error) {
                     error(err);
                 }
@@ -96,7 +102,8 @@ class WebClientClass extends Client {
             password,
             token,
             (data) => {
-                this.track('api', 'api_users_login_success', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_success');
+                this.trackEvent('api', 'api_users_login_ldap_success');
                 BrowserStore.signalLogin();
 
                 if (success) {
@@ -104,7 +111,8 @@ class WebClientClass extends Client {
                 }
             },
             (err) => {
-                this.track('api', 'api_users_login_fail', '', 'login_id', loginId);
+                this.trackEvent('api', 'api_users_login_fail');
+                this.trackEvent('api', 'api_users_login_ldap_fail');
                 if (error) {
                     error(err);
                 }
