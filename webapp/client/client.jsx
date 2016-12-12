@@ -562,7 +562,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateTeam', success, error));
 
         this.deprecatedTrack('api', 'api_teams_update_name');
-        this.trackEvent('api', 'api_teams_update_name');
+        this.trackEvent('api', 'api_teams_update_name', {team_id: this.getTeamId()});
     }
 
     getAllTeams(success, error) {
@@ -639,7 +639,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'inviteMembers', success, error));
 
         this.deprecatedTrack('api', 'api_teams_invite_members');
-        this.trackEvent('api', 'api_teams_invite_members');
+        this.trackEvent('api', 'api_teams_invite_members', {team_id: this.getTeamId()});
     }
 
     addUserToTeam(teamId, userId, success, error) {
@@ -657,7 +657,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
 
         this.deprecatedTrack('api', 'api_teams_invite_members');
-        this.trackEvent('api', 'api_teams_invite_members');
+        this.trackEvent('api', 'api_teams_invite_members', {team_id: nonEmptyTeamId});
     }
 
     addUserToTeamFromInvite(data, hash, inviteId, success, error) {
@@ -688,7 +688,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'removeUserFromTeam', success, error));
 
         this.deprecatedTrack('api', 'api_teams_remove_members');
-        this.trackEvent('api', 'api_teams_remove_members');
+        this.trackEvent('api', 'api_teams_remove_members', {team_id: nonEmptyTeamId});
     }
 
     getInviteInfo(inviteId, success, error) {
@@ -737,7 +737,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'createUser', success, error));
 
         this.deprecatedTrack('api', 'api_users_create', '', 'email', user.email);
-        this.trackEvent('api', 'api_users_create', '', 'email', user.email);
+        this.trackEvent('api', 'api_users_create');
     }
 
     updateUser(user, type, success, error) {
@@ -821,7 +821,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateTeamMemberRoles', success, error));
 
         this.deprecatedTrack('api', 'api_teams_update_member_roles');
-        this.trackEvent('api', 'api_teams_update_member_roles');
+        this.trackEvent('api', 'api_teams_update_member_roles', {team_id: teamId});
     }
 
     updateActive(userId, active, success, error) {
@@ -1124,7 +1124,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesInTeam', success, error));
 
-        this.trackEvent('api', 'api_profiles_get_in_team');
+        this.trackEvent('api', 'api_profiles_get_in_team', {team_id: teamId});
     }
 
     getProfilesInChannel(channelId, offset, limit, success, error) {
@@ -1135,7 +1135,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesInChannel', success, error));
 
-        this.trackEvent('api', 'api_profiles_get_in_channel');
+        this.trackEvent('api', 'api_profiles_get_in_channel', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getProfilesNotInChannel(channelId, offset, limit, success, error) {
@@ -1146,7 +1146,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getProfilesNotInChannel', success, error));
 
-        this.trackEvent('api', 'api_profiles_get_not_in_channel');
+        this.trackEvent('api', 'api_profiles_get_not_in_channel', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getProfilesByIds(userIds, success, error) {
@@ -1226,7 +1226,7 @@ export default class Client {
             send({channel_id: id}).
             end(this.handleResponse.bind(this, 'setActiveChannel', success, error));
 
-        this.trackEvent('api', 'api_channels_set_active');
+        this.trackEvent('api', 'api_channels_set_active', {channel_id: id});
     }
 
     verifyEmail(uid, hid, success, error) {
@@ -1287,7 +1287,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'createChannel', success, error));
 
         this.deprecatedTrack('api', 'api_channels_create', channel.type, 'name', channel.name);
-        this.trackEvent('api', 'api_channels_create');
+        this.trackEvent('api', 'api_channels_create', {team_id: this.getTeamId()});
     }
 
     createDirectChannel(userId, success, error) {
@@ -1299,7 +1299,7 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'createDirectChannel', success, error));
 
-        this.trackEvent('api', 'api_channels_create_direct');
+        this.trackEvent('api', 'api_channels_create_direct', {team_id: this.getTeamId()});
     }
 
     updateChannel(channel, success, error) {
@@ -1312,7 +1312,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateChannel', success, error));
 
         this.deprecatedTrack('api', 'api_channels_update');
-        this.trackEvent('api', 'api_channels_update');
+        this.trackEvent('api', 'api_channels_update', {team_id: this.getTeamId(), channel_id: channel.id});
     }
 
     updateChannelHeader(channelId, header, success, error) {
@@ -1330,7 +1330,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateChannel', success, error));
 
         this.deprecatedTrack('api', 'api_channels_header');
-        this.trackEvent('api', 'api_channels_header');
+        this.trackEvent('api', 'api_channels_header', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     updateChannelPurpose(channelId, purpose, success, error) {
@@ -1348,7 +1348,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateChannelPurpose', success, error));
 
         this.deprecatedTrack('api', 'api_channels_purpose');
-        this.trackEvent('api', 'api_channels_purpose');
+        this.trackEvent('api', 'api_channels_purpose', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     updateChannelNotifyProps(data, success, error) {
@@ -1370,7 +1370,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'leaveChannel', success, error));
 
         this.deprecatedTrack('api', 'api_channels_leave');
-        this.trackEvent('api', 'api_channels_leave');
+        this.trackEvent('api', 'api_channels_leave', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     joinChannel(channelId, success, error) {
@@ -1382,7 +1382,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'joinChannel', success, error));
 
         this.deprecatedTrack('api', 'api_channels_join');
-        this.trackEvent('api', 'api_channels_join');
+        this.trackEvent('api', 'api_channels_join', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     joinChannelByName(name, success, error) {
@@ -1394,7 +1394,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'joinChannelByName', success, error));
 
         this.deprecatedTrack('api', 'api_channels_join_name');
-        this.trackEvent('api', 'api_channels_join_name');
+        this.trackEvent('api', 'api_channels_join_name', {team_id: this.getTeamId()});
     }
 
     deleteChannel(channelId, success, error) {
@@ -1406,7 +1406,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'deleteChannel', success, error));
 
         this.deprecatedTrack('api', 'api_channels_delete');
-        this.trackEvent('api', 'api_channels_delete');
+        this.trackEvent('api', 'api_channels_delete', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     updateLastViewedAt(channelId, active, success, error) {
@@ -1447,7 +1447,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'getChannel', success, error));
 
         this.deprecatedTrack('api', 'api_channel_get');
-        this.trackEvent('api', 'api_channel_get');
+        this.trackEvent('api', 'api_channel_get', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     // SCHEDULED FOR DEPRECATION IN 3.7 - use getMoreChannelsPage instead
@@ -1459,7 +1459,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getMoreChannels', success, error));
 
-        this.trackEvent('api', 'api_channels_more');
+        this.trackEvent('api', 'api_channels_more', {team_id: this.getTeamId()});
     }
 
     getMoreChannelsPage(offset, limit, success, error) {
@@ -1470,7 +1470,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getMoreChannelsPage', success, error));
 
-        this.trackEvent('api', 'api_channels_more_page');
+        this.trackEvent('api', 'api_channels_more_page', {team_id: this.getTeamId()});
     }
 
     searchMoreChannels(term, success, error) {
@@ -1547,7 +1547,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'addChannelMember', success, error));
 
         this.deprecatedTrack('api', 'api_channels_add_member');
-        this.trackEvent('api', 'api_channels_add_member');
+        this.trackEvent('api', 'api_channels_add_member', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     removeChannelMember(channelId, userId, success, error) {
@@ -1560,7 +1560,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'removeChannelMember', success, error));
 
         this.deprecatedTrack('api', 'api_channels_remove_member');
-        this.trackEvent('api', 'api_channels_remove_member');
+        this.trackEvent('api', 'api_channels_remove_member', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     // Routes for Commands
@@ -1657,41 +1657,41 @@ export default class Client {
             end(this.handleResponse.bind(this, 'createPost', success, error));
 
         this.deprecatedTrack('api', 'api_posts_create', post.channel_id, 'length', post.message.length);
-        this.trackEvent('api', 'api_posts_create');
+        this.trackEvent('api', 'api_posts_create', {team_id: this.getTeamId(), channel_id: post.channel_id});
 
         if (post.message.match(/\s#./)) {
             this.deprecatedTrack('api', 'api_posts_hashtag');
-            this.trackEvent('api', 'api_posts_hashtag');
+            this.trackEvent('api', 'api_posts_hashtag', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
 
         if (post.message.match(/\s@./)) {
             this.deprecatedTrack('api', 'api_posts_mentions');
-            this.trackEvent('api', 'api_posts_mentions');
+            this.trackEvent('api', 'api_posts_mentions', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
 
         // Regex lifted from https://github.com/mattermost/marked/blob/master/lib/marked.js for GFM URL matching.
         if (post.message.match(/((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s`!()\[\]{};:'".,<>?«»“”‘’]|[`!\[\]{};:'".,<>?«»“”‘’](?=[^\s()<>])|\((?:[^\s()<>]|(?:\([^\s()<>]+\)))*\))+)/i)) {
-            this.trackEvent('api', 'api_posts_links')
+            this.trackEvent('api', 'api_posts_links', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
 
         if (post.message.match(/\s@all/)) {
-            this.trackEvent('api', 'api_posts_mentions_all')
+            this.trackEvent('api', 'api_posts_mentions_all', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
 
         if (post.message.match(/\s@channel/)) {
-            this.trackEvent('api', 'api_posts_mentions_channel')
+            this.trackEvent('api', 'api_posts_mentions_channel', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
 
         if (post.message.match(/\s@here/)) {
-            this.trackEvent('api', 'api_posts_mentions_here')
+            this.trackEvent('api', 'api_posts_mentions_here', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
 
         if (post.parent_id != null && post.parent_id !== '') {
-            this.trackEvent('api', 'api_posts_replied');
+            this.trackEvent('api', 'api_posts_replied', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
 
         if (post.message.match(/([\uE000-\uF8FF]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDDFF]|:[^\s]+:)/i)) {
-            this.trackEvent('api', 'api_posts_emoji');
+            this.trackEvent('api', 'api_posts_emoji', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
     }
 
@@ -1705,7 +1705,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPermalinkTmp', success, error));
 
-        this.trackEvent('api', 'api_channels_permalink');
+        this.trackEvent('api', 'api_channels_permalink', {team_id: this.getTeamId()});
     }
 
     getPostById(postId, success, error) {
@@ -1736,7 +1736,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updatePost', success, error));
 
         this.deprecatedTrack('api', 'api_posts_update');
-        this.trackEvent('api', 'api_posts_update');
+        this.trackEvent('api', 'api_posts_update', {team_id: this.getTeamId(), channel_id: post.channel_id});
     }
 
     deletePost(channelId, postId, success, error) {
@@ -1748,7 +1748,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'deletePost', success, error));
 
         this.deprecatedTrack('api', 'api_posts_delete');
-        this.trackEvent('api', 'api_posts_delete');
+        this.trackEvent('api', 'api_posts_delete', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     search(terms, isOrSearch, success, error) {
@@ -1765,7 +1765,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'search', success, error));
 
         this.deprecatedTrack('api', 'api_posts_search');
-        this.trackEvent('api', 'api_posts_search');
+        this.trackEvent('api', 'api_posts_search', {team_id: this.getTeamId()});
     }
 
     getPostsPage(channelId, offset, limit, success, error) {
@@ -1794,7 +1794,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPostsBefore', success, error));
 
-        this.trackEvent('api', 'api_posts_get_before');
+        this.trackEvent('api', 'api_posts_get_before', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getPostsAfter(channelId, postId, offset, numPost, success, error) {
@@ -1805,7 +1805,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getPostsAfter', success, error));
 
-        this.trackEvent('api', 'api_posts_get_after');
+        this.trackEvent('api', 'api_posts_get_after', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
     getFlaggedPosts(offset, limit, success, error) {
@@ -1816,7 +1816,7 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getFlaggedPosts', success, error));
 
-        this.trackEvent('api', 'api_posts_get_flagged');
+        this.trackEvent('api', 'api_posts_get_flagged', {team_id: this.getTeamId()});
     }
 
     getFileInfosForPost(channelId, postId, success, error) {
@@ -1831,6 +1831,8 @@ export default class Client {
     // Routes for Files
 
     uploadFile(file, filename, channelId, clientId, success, error) {
+        this.trackEvent('api', 'api_files_upload', {team_id: this.getTeamId(), channel_id: channelId});
+
         return request.
             post(`${this.getTeamFilesRoute()}/upload`).
             set(this.defaultHeaders).
@@ -1839,8 +1841,6 @@ export default class Client {
             field('client_ids', clientId).
             accept('application/json').
             end(this.handleResponse.bind(this, 'uploadFile', success, error));
-
-        this.trackEvent('api', 'api_files_upload');
     }
 
     getFile(fileId, success, error) {
@@ -1991,7 +1991,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'addIncomingHook', success, error));
 
         this.deprecatedTrack('api', 'api_integrations_created');
-        this.trackEvent('api', 'api_integrations_created');
+        this.trackEvent('api', 'api_integrations_created', {team_id: this.getTeamId()});
     }
 
     deleteIncomingHook(hookId, success, error) {
@@ -2004,7 +2004,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'deleteIncomingHook', success, error));
 
         this.deprecatedTrack('api', 'api_integrations_deleted');
-        this.trackEvent('api', 'api_integrations_deleted');
+        this.trackEvent('api', 'api_integrations_deleted', {team_id: this.getTeamId()});
     }
 
     listIncomingHooks(success, error) {
@@ -2026,7 +2026,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'addOutgoingHook', success, error));
 
         this.deprecatedTrack('api', 'api_integrations_created');
-        this.trackEvent('api', 'api_integrations_created');
+        this.trackEvent('api', 'api_integrations_created', {team_id: this.getTeamId()});
     }
 
     deleteOutgoingHook(hookId, success, error) {
@@ -2039,7 +2039,7 @@ export default class Client {
             end(this.handleResponse.bind(this, 'deleteOutgoingHook', success, error));
 
         this.deprecatedTrack('api', 'api_integrations_deleted');
-        this.trackEvent('api', 'api_integrations_deleted');
+        this.trackEvent('api', 'api_integrations_deleted', {team_id: this.getTeamId()});
     }
 
     listOutgoingHooks(success, error) {
@@ -2183,7 +2183,7 @@ export default class Client {
             send(reaction).
             end(this.handleResponse.bind(this, 'saveReaction', success, error));
 
-        this.trackEvent('api', 'api_reactions_save');
+        this.trackEvent('api', 'api_reactions_save', {team_id: this.getTeamId(), channel_id: channelId, post_id: reaction.post_id});
     }
 
     deleteReaction(channelId, reaction, success, error) {
@@ -2194,7 +2194,7 @@ export default class Client {
             send(reaction).
             end(this.handleResponse.bind(this, 'deleteReaction', success, error));
 
-        this.trackEvent('api', 'api_reactions_delete');
+        this.trackEvent('api', 'api_reactions_delete', {team_id: this.getTeamId(), channel_id: channelId, post_id: reaction.post_id});
     }
 
     listReactions(channelId, postId, success, error) {
