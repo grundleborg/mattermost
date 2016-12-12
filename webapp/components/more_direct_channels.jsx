@@ -6,7 +6,6 @@ import SpinnerButton from 'components/spinner_button.jsx';
 
 import {searchUsers} from 'actions/user_actions.jsx';
 import {openDirectChannelToUser} from 'actions/channel_actions.jsx';
-import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import UserStore from 'stores/user_store.jsx';
 import TeamStore from 'stores/team_store.jsx';
