@@ -1669,6 +1669,11 @@ export default class Client {
             this.trackEvent('api', 'api_posts_mentions');
         }
 
+        // Regex lifted from https://github.com/mattermost/marked/blob/master/lib/marked.js for GFM URL matching.
+        if (post.message.match(/((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.\-]+[.][a-z]{2,4}\/)(?:[^\s`!()\[\]{};:'".,<>?«»“”‘’]|[`!\[\]{};:'".,<>?«»“”‘’](?=[^\s()<>])|\((?:[^\s()<>]|(?:\([^\s()<>]+\)))*\))+)/i)) {
+            this.trackEvent('api', 'api_posts_links')
+        }
+
         if (post.message.match(/\s@all/)) {
             this.trackEvent('api', 'api_posts_mentions_all')
         }
@@ -1683,6 +1688,10 @@ export default class Client {
 
         if (post.parent_id != null && post.parent_id !== '') {
             this.trackEvent('api', 'api_posts_replied');
+        }
+
+        if (post.message.match(/([\uE000-\uF8FF]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDDFF]|:[^\s]+:)/i)) {
+            this.trackEvent('api', 'api_posts_emoji');
         }
     }
 

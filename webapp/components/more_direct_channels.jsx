@@ -186,7 +186,6 @@ export default class MoreDirectChannels extends React.Component {
     }
 
     render() {
-        trackEvent('api', 'api_channels_more_direct');
         let teamToggle;
         if (global.window.mm_config.RestrictDirectMessage === 'any') {
             teamToggle = (
