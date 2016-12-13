@@ -10,8 +10,8 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/segmentio/analytics-go"
-	"strings"
 	"gopkg.in/square/go-jose.v1/json"
+	"strings"
 )
 
 const (
@@ -43,6 +43,12 @@ const (
 	TRACK_CONFIG_COMPLIANCE   = "compliance"
 	TRACK_CONFIG_LOCALIZATION = "localization"
 	TRACK_CONFIG_SAML         = "saml"
+	TRACK_CONFIG_PASSWORD     = "password"
+	TRACK_CONFIG_CLUSTER      = "cluster"
+	TRACK_CONFIG_METRICS      = "metrics"
+	TRACK_CONFIG_WEBRTC       = "webrtc"
+	TRACK_CONFIG_SUPPORT      = "support"
+	TRACK_CONFIG_NATIVEAPP    = "nativeapp"
 
 	TRACK_LICENSE  = "license"
 	TRACK_ACTIVITY = "activity"
@@ -108,6 +114,13 @@ func getPref(name string, prefs model.Preferences) string {
 	return ""
 }
 
+func isDefault(setting interface{}, defaultValue interface{}) bool {
+	if setting == defaultValue {
+		return true
+	}
+	return false
+}
+
 func trackConfig() {
 	SendDiagnostic(TRACK_CONFIG_SERVICE, map[string]interface{}{
 		"web_server_mode":                      *utils.Cfg.ServiceSettings.WebserverMode,
@@ -123,6 +136,24 @@ func trackConfig() {
 		"restrict_custom_emoji_creation":       *utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation,
 		"enable_testing":                       utils.Cfg.ServiceSettings.EnableTesting,
 		"enable_developer":                     *utils.Cfg.ServiceSettings.EnableDeveloper,
+		"enable_multifactor_authentication":    utils.Cfg.ServiceSettings.EnableMultifactorAuthentication,
+		"enable_oauth_service_provider":        utils.Cfg.ServiceSettings.EnableOAuthServiceProvider,
+		"connection_security":                  *utils.Cfg.ServiceSettings.ConnectionSecurity,
+		"uses_letsencrypt":                     *utils.Cfg.ServiceSettings.UseLetsEncrypt,
+		"forward_80_to_443":                    *utils.Cfg.ServiceSettings.Forward80To443,
+		"maximum_login_attempts":               utils.Cfg.ServiceSettings.MaximumLoginAttempts,
+		"session_length_web_in_days":           *utils.Cfg.ServiceSettings.SessionLengthWebInDays,
+		"session_length_mobile_in_days":        *utils.Cfg.ServiceSettings.SessionLengthMobileInDays,
+		"session_length_sso_in_days":           *utils.Cfg.ServiceSettings.SessionLengthSSOInDays,
+		"session_cache_in_minutes":             *utils.Cfg.ServiceSettings.SessionCacheInMinutes,
+		"isdefault_site_url":                   isDefault(*utils.Cfg.ServiceSettings.SiteURL, model.SERVICE_SETTINGS_DEFAULT_SITE_URL),
+		"isdefault_tls_cert_file":              isDefault(*utils.Cfg.ServiceSettings.TLSCertFile, model.SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE),
+		"isdefault_tls_key_file":               isDefault(*utils.Cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
+		"isdefault_read_timeout":               isDefault(*utils.Cfg.ServiceSettings.ReadTimeout, model.SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT),
+		"isdefault_write_timeout":              isDefault(*utils.Cfg.ServiceSettings.WriteTimeout, model.SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT),
+		"isdefault_segment_developer_key":      isDefault(utils.Cfg.ServiceSettings.SegmentDeveloperKey, ""),
+		"isdefault_google_developer_key":       isDefault(utils.Cfg.ServiceSettings.GoogleDeveloperKey, ""),
+		"isdefault_allow_cors_from":            isDefault(*utils.Cfg.ServiceSettings.AllowCorsFrom, model.SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -133,10 +164,22 @@ func trackConfig() {
 		"restrict_private_channel_management": *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement,
 		"enable_open_server":                  *utils.Cfg.TeamSettings.EnableOpenServer,
 		"enable_custom_brand":                 *utils.Cfg.TeamSettings.EnableCustomBrand,
+		"restrict_direct_message":             *utils.Cfg.TeamSettings.RestrictDirectMessage,
+		"max_notifications_per_channel":       *utils.Cfg.TeamSettings.MaxNotificationsPerChannel,
+		"max_users_per_team":                  utils.Cfg.TeamSettings.MaxUsersPerTeam,
+		"max_channels_per_team":               *utils.Cfg.TeamSettings.MaxChannelsPerTeam,
+		"isdefault_site_name":                 isDefault(utils.Cfg.TeamSettings.SiteName, "Mattermost"),
+		"isdefault_custom_brand_text":         isDefault(*utils.Cfg.TeamSettings.CustomBrandText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_BRAND_TEXT),
+		"isdefault_custom_description_text":   isDefault(*utils.Cfg.TeamSettings.CustomDescriptionText, model.TEAM_SETTINGS_DEFAULT_CUSTOM_DESCRIPTION_TEXT),
+		"isdefault_user_status_away_timeout":  isDefault(*utils.Cfg.TeamSettings.UserStatusAwayTimeout, model.TEAM_SETTINGS_DEFAULT_USER_STATUS_AWAY_TIMEOUT),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_SQL, map[string]interface{}{
-		"driver_name": utils.Cfg.SqlSettings.DriverName,
+		"driver_name":    utils.Cfg.SqlSettings.DriverName,
+		"trace":          utils.Cfg.SqlSettings.Trace,
+		"max_idle_conns": utils.Cfg.SqlSettings.MaxIdleConns,
+		"max_open_conns": utils.Cfg.SqlSettings.MaxOpenConns,
+		"data_source_replicas": len(utils.Cfg.SqlSettings.DataSourceReplicas),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_LOG, map[string]interface{}{
@@ -145,26 +188,55 @@ func trackConfig() {
 		"enable_file":              utils.Cfg.LogSettings.EnableFile,
 		"file_level":               utils.Cfg.LogSettings.FileLevel,
 		"enable_webhook_debugging": utils.Cfg.LogSettings.EnableWebhookDebugging,
+		"isdefault_file_format":    isDefault(utils.Cfg.LogSettings.FileFormat, ""),
+		"isdefault_file_location":  isDefault(utils.Cfg.LogSettings.FileLocation, ""),
+	})
+
+	SendDiagnostic(TRACK_CONFIG_PASSWORD, map[string]interface{}{
+		"minimum_length": *utils.Cfg.PasswordSettings.MinimumLength,
+		"lowercase":      *utils.Cfg.PasswordSettings.Lowercase,
+		"number":         *utils.Cfg.PasswordSettings.Number,
+		"uppercase":      *utils.Cfg.PasswordSettings.Uppercase,
+		"symbol":         *utils.Cfg.PasswordSettings.Symbol,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
 		"enable_public_links": utils.Cfg.FileSettings.EnablePublicLink,
-	})
-
-	SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
-		"enable_rate_limiter":    *utils.Cfg.RateLimitSettings.Enable,
-		"vary_by_remote_address": utils.Cfg.RateLimitSettings.VaryByRemoteAddr,
+		"driver_name":         utils.Cfg.FileSettings.DriverName,
+		"amazon_s3_ssl":       *utils.Cfg.FileSettings.AmazonS3SSL,
+		"thumbnail_width":     utils.Cfg.FileSettings.ThumbnailWidth,
+		"thumbnail_height":    utils.Cfg.FileSettings.ThumbnailHeight,
+		"preview_width":       utils.Cfg.FileSettings.PreviewWidth,
+		"preview_height":      utils.Cfg.FileSettings.PreviewHeight,
+		"profile_width":       utils.Cfg.FileSettings.ProfileWidth,
+		"profile_height":      utils.Cfg.FileSettings.ProfileHeight,
+		"max_file_size":       *utils.Cfg.FileSettings.MaxFileSize,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_EMAIL, map[string]interface{}{
-		"enable_sign_up_with_email":    utils.Cfg.EmailSettings.EnableSignUpWithEmail,
-		"enable_sign_in_with_email":    *utils.Cfg.EmailSettings.EnableSignInWithEmail,
-		"enable_sign_in_with_username": *utils.Cfg.EmailSettings.EnableSignInWithUsername,
-		"require_email_verification":   utils.Cfg.EmailSettings.RequireEmailVerification,
-		"send_email_notifications":     utils.Cfg.EmailSettings.SendEmailNotifications,
-		"connection_security":          utils.Cfg.EmailSettings.ConnectionSecurity,
-		"send_push_notifications":      *utils.Cfg.EmailSettings.SendPushNotifications,
-		"push_notification_contents":   *utils.Cfg.EmailSettings.PushNotificationContents,
+		"enable_sign_up_with_email":       utils.Cfg.EmailSettings.EnableSignUpWithEmail,
+		"enable_sign_in_with_email":       *utils.Cfg.EmailSettings.EnableSignInWithEmail,
+		"enable_sign_in_with_username":    *utils.Cfg.EmailSettings.EnableSignInWithUsername,
+		"require_email_verification":      utils.Cfg.EmailSettings.RequireEmailVerification,
+		"send_email_notifications":        utils.Cfg.EmailSettings.SendEmailNotifications,
+		"connection_security":             utils.Cfg.EmailSettings.ConnectionSecurity,
+		"send_push_notifications":         *utils.Cfg.EmailSettings.SendPushNotifications,
+		"push_notification_contents":      *utils.Cfg.EmailSettings.PushNotificationContents,
+		"enable_email_batching":           *utils.Cfg.EmailSettings.EnableEmailBatching,
+		"email_batching_buffer_size":      *utils.Cfg.EmailSettings.EmailBatchingBufferSize,
+		"email_batching_intervavel":       *utils.Cfg.EmailSettings.EmailBatchingInterval,
+		"isdefault_feedback_name":         isDefault(utils.Cfg.EmailSettings.FeedbackName, ""),
+		"isdefault_feedback_email":        isDefault(utils.Cfg.EmailSettings.FeedbackEmail, ""),
+		"isdefault_feedback_organization": isDefault(*utils.Cfg.EmailSettings.FeedbackOrganization, model.EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION),
+	})
+
+	SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
+		"enable_rate_limiter":      *utils.Cfg.RateLimitSettings.Enable,
+		"vary_by_remote_address":   utils.Cfg.RateLimitSettings.VaryByRemoteAddr,
+		"per_sec":                  utils.Cfg.RateLimitSettings.PerSec,
+		"max_burst":                *utils.Cfg.RateLimitSettings.MaxBurst,
+		"memory_store_size":        utils.Cfg.RateLimitSettings.MemoryStoreSize,
+		"isdefault_vary_by_header": isDefault(utils.Cfg.RateLimitSettings.VaryByHeader, ""),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_PRIVACY, map[string]interface{}{
@@ -173,15 +245,34 @@ func trackConfig() {
 	})
 
 	SendDiagnostic(TRACK_CONFIG_OAUTH, map[string]interface{}{
-		"gitlab":    utils.Cfg.GitLabSettings.Enable,
-		"google":    utils.Cfg.GoogleSettings.Enable,
-		"office365": utils.Cfg.Office365Settings.Enable,
+		"enable_gitlab":    utils.Cfg.GitLabSettings.Enable,
+		"enable_google":    utils.Cfg.GoogleSettings.Enable,
+		"enable_office365": utils.Cfg.Office365Settings.Enable,
+	})
+
+	SendDiagnostic(TRACK_CONFIG_SUPPORT, map[string]interface{}{
+		"isdefault_terms_of_service_link": isDefault(*utils.Cfg.SupportSettings.TermsOfServiceLink, model.SUPPORT_SETTINGS_DEFAULT_TERMS_OF_SERVICE_LINK),
+		"isdefault_privacy_policy_link":   isDefault(*utils.Cfg.SupportSettings.PrivacyPolicyLink, model.SUPPORT_SETTINGS_DEFAULT_PRIVACY_POLICY_LINK),
+		"isdefault_about_link":            isDefault(*utils.Cfg.SupportSettings.AboutLink, model.SUPPORT_SETTINGS_DEFAULT_ABOUT_LINK),
+		"isdefault_help_link":             isDefault(*utils.Cfg.SupportSettings.HelpLink, model.SUPPORT_SETTINGS_DEFAULT_HELP_LINK),
+		"isdefault_report_a_problem_link": isDefault(*utils.Cfg.SupportSettings.ReportAProblemLink, model.SUPPORT_SETTINGS_DEFAULT_REPORT_A_PROBLEM_LINK),
+		"isdefault_support_email":         isDefault(*utils.Cfg.SupportSettings.SupportEmail, model.SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
-		"enable":                        *utils.Cfg.LdapSettings.Enable,
-		"connection_security":           *utils.Cfg.LdapSettings.ConnectionSecurity,
-		"skip_certificate_verification": *utils.Cfg.LdapSettings.SkipCertificateVerification,
+		"enable":                         *utils.Cfg.LdapSettings.Enable,
+		"connection_security":            *utils.Cfg.LdapSettings.ConnectionSecurity,
+		"skip_certificate_verification":  *utils.Cfg.LdapSettings.SkipCertificateVerification,
+		"sync_interval_minutes":          *utils.Cfg.LdapSettings.SyncIntervalMinutes,
+		"query_timeout":                  *utils.Cfg.LdapSettings.QueryTimeout,
+		"max_page_size":                  *utils.Cfg.LdapSettings.MaxPageSize,
+		"isdefault_first_name_attribute": isDefault(*utils.Cfg.LdapSettings.FirstNameAttribute, model.LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
+		"isdefault_last_name_attribute":  isDefault(*utils.Cfg.LdapSettings.LastNameAttribute, model.LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
+		"isdefault_email_attribute":      isDefault(*utils.Cfg.LdapSettings.EmailAttribute, model.LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
+		"isdefault_username_attribute":   isDefault(*utils.Cfg.LdapSettings.UsernameAttribute, model.LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
+		"isdefault_nickname_attribute":   isDefault(*utils.Cfg.LdapSettings.NicknameAttribute, model.LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
+		"isdefault_id_attribute":         isDefault(*utils.Cfg.LdapSettings.IdAttribute, model.LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE),
+		"isdefault_login_field_name":     isDefault(*utils.Cfg.LdapSettings.LoginFieldName, model.LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME),
 	})
 
 	SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{
@@ -197,6 +288,33 @@ func trackConfig() {
 
 	SendDiagnostic(TRACK_CONFIG_SAML, map[string]interface{}{
 		"enable": *utils.Cfg.SamlSettings.Enable,
+		"isdefault_first_name_attribute": isDefault(*utils.Cfg.SamlSettings.FirstNameAttribute, model.SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
+		"isdefault_last_name_attribute":  isDefault(*utils.Cfg.SamlSettings.LastNameAttribute, model.SAML_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
+		"isdefault_email_attribute":      isDefault(*utils.Cfg.SamlSettings.EmailAttribute, model.SAML_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
+		"isdefault_username_attribute":   isDefault(*utils.Cfg.SamlSettings.UsernameAttribute, model.SAML_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
+		"isdefault_nickname_attribute":   isDefault(*utils.Cfg.SamlSettings.NicknameAttribute, model.SAML_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
+		"isdefault_locale_attribute":     isDefault(*utils.Cfg.SamlSettings.LocaleAttribute, model.SAML_SETTINGS_DEFAULT_LOCALE_ATTRIBUTE),
+		"isdefault_login_button_text":    isDefault(*utils.Cfg.SamlSettings.LoginButtonText, model.USER_AUTH_SERVICE_SAML_TEXT),
+	})
+
+	SendDiagnostic(TRACK_CONFIG_CLUSTER, map[string]interface{}{
+		"enable": *utils.Cfg.ClusterSettings.Enable,
+	})
+
+	SendDiagnostic(TRACK_CONFIG_METRICS, map[string]interface{}{
+		"enable": *utils.Cfg.MetricsSettings.Enable,
+	})
+
+	SendDiagnostic(TRACK_CONFIG_NATIVEAPP, map[string]interface{}{
+		"isdefault_app_download_link":         isDefault(*utils.Cfg.NativeAppSettings.AppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_APP_DOWNLOAD_LINK),
+		"isdefault_android_app_download_link": isDefault(*utils.Cfg.NativeAppSettings.AndroidAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK),
+		"isdefault_iosapp_download_link":      isDefault(*utils.Cfg.NativeAppSettings.IosAppDownloadLink, model.NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK),
+	})
+
+	SendDiagnostic(TRACK_CONFIG_WEBRTC, map[string]interface{}{
+		"enable":             *utils.Cfg.WebrtcSettings.Enable,
+		"isdefault_stun_uri": isDefault(*utils.Cfg.WebrtcSettings.StunURI, model.WEBRTC_SETTINGS_DEFAULT_STUN_URI),
+		"isdefault_turn_uri": isDefault(*utils.Cfg.WebrtcSettings.TurnURI, model.WEBRTC_SETTINGS_DEFAULT_TURN_URI),
 	})
 }
 
@@ -283,12 +401,12 @@ func trackChannels() {
 func trackLicense() {
 	if utils.IsLicensed {
 		data := map[string]interface{}{
-			"name":     utils.License.Customer.Name,
-			"company":  utils.License.Customer.Company,
-			"issued":   utils.License.IssuedAt,
-			"start":    utils.License.StartsAt,
-			"expire":   utils.License.ExpiresAt,
-			"users":    *utils.License.Features.Users,
+			"name":    utils.License.Customer.Name,
+			"company": utils.License.Customer.Company,
+			"issued":  utils.License.IssuedAt,
+			"start":   utils.License.StartsAt,
+			"expire":  utils.License.ExpiresAt,
+			"users":   *utils.License.Features.Users,
 		}
 
 		features := utils.License.Features.ToMap()
@@ -304,9 +422,9 @@ func trackTeams() {
 	if res := <-api.Srv.Store.Team().GetAll(); res.Err == nil {
 		for _, team := range res.Data.([]*model.Team) {
 			data := map[string]interface{}{
-				"team_id": team.Id,
+				"team_id":           team.Id,
 				"team_admins_count": 0,
-				"open_team": team.AllowOpenInvite,
+				"open_team":         team.AllowOpenInvite,
 			}
 
 			if cor := <-api.Srv.Store.Channel().AnalyticsTypeCount(team.Id, "O"); cor.Err == nil {
