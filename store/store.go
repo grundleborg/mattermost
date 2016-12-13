@@ -77,6 +77,7 @@ type TeamStore interface {
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel
+	AnalyticsGetTeamAdminCount(teamId string) StoreChannel
 }
 
 type ChannelStore interface {

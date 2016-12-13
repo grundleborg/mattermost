@@ -16,7 +16,7 @@ import (
 
 const (
 	DIAGNOSTIC_URL = "https://d7zmvsa9e04kk.cloudfront.net"
-	SEGMENT_KEY    = "ua1qQtmgOZWIM23YjD842tQAsN7Ydi5X"
+	SEGMENT_KEY    = "bEfttzUTGXCHtTAjlwTQyNIrtXEtuKv8"
 
 	PROP_DIAGNOSTIC_ID                = "id"
 	PROP_DIAGNOSTIC_CATEGORY          = "c"
@@ -47,6 +47,7 @@ const (
 	TRACK_LICENSE  = "license"
 	TRACK_ACTIVITY = "activity"
 	TRACK_CHANNEL  = "channel"
+	TRACK_TEAM     = "team"
 	TRACK_USER     = "user"
 	TRACK_VERSION  = "version"
 )
@@ -60,6 +61,7 @@ func SendDailyDiagnostics() {
 		trackChannels()
 		trackConfig()
 		trackLicense()
+		trackTeams()
 		trackUsers()
 		trackVersion()
 	}
@@ -295,6 +297,44 @@ func trackLicense() {
 		}
 
 		SendDiagnostic(TRACK_LICENSE, data)
+	}
+}
+
+func trackTeams() {
+	if res := <-api.Srv.Store.Team().GetAll(); res.Err == nil {
+		for _, team := range res.Data.([]*model.Team) {
+			data := map[string]interface{}{
+				"team_id": team.Id,
+				"team_admins_count": 0,
+				"open_team": team.AllowOpenInvite,
+			}
+
+			if cor := <-api.Srv.Store.Channel().AnalyticsTypeCount(team.Id, "O"); cor.Err == nil {
+				data["channel_count_public"] = cor.Data.(int64)
+			}
+
+			if cpr := <-api.Srv.Store.Channel().AnalyticsTypeCount(team.Id, "P"); cpr.Err == nil {
+				data["channel_count_private"] = cpr.Data.(int64)
+			}
+
+			if cdr := <-api.Srv.Store.Channel().AnalyticsTypeCount(team.Id, "D"); cdr.Err == nil {
+				data["channel_count_direct"] = cdr.Data.(int64)
+			}
+
+			if pcr := <-api.Srv.Store.Post().AnalyticsPostCount(team.Id, false, false); pcr.Err == nil {
+				data["posts_count"] = pcr.Data.(int64)
+			}
+
+			if tcr := <-api.Srv.Store.User().AnalyticsUniqueUserCount(team.Id); tcr.Err == nil {
+				data["users_count"] = tcr.Data.(int64)
+			}
+
+			if tar := <-api.Srv.Store.Team().AnalyticsGetTeamAdminCount(team.Id); tar.Err == nil {
+				data["team_admins_count"] = tar.Data.(int64)
+			}
+
+			SendDiagnostic(TRACK_TEAM, data)
+		}
 	}
 }
 

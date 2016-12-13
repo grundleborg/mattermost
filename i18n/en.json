@@ -4820,6 +4820,10 @@
     "translation": "We encountered an error updating the system property"
   },
   {
+    "id": "store.sql_team.analytics_get_team_admin_count.app_error",
+    "translation": "We couldn't count the team admins"
+  },
+  {
     "id": "store.sql_team.analytics_team_count.app_error",
     "translation": "We couldn't count the teams"
   },
