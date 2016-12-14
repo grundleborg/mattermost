@@ -183,6 +183,7 @@ type UserStore interface {
 	SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetUsersWithTeamCount() StoreChannel
+	AnalyticsGetSystemAdminCount() StoreChannel
 }
 
 type SessionStore interface {

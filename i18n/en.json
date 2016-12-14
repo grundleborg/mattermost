@@ -4936,6 +4936,10 @@
     "translation": "We couldn't get the users with team count"
   },
   {
+    "id": "store.sql_user.analytics_get_system_admin_count.app_error",
+    "translation": "We couldn't get the system admin count"
+  },
+  {
     "id": "store.sql_user.get.app_error",
     "translation": "We encountered an error finding the account"
   },

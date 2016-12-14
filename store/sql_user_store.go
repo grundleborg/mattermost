@@ -1386,3 +1386,23 @@ func (us SqlUserStore) AnalyticsGetUsersWithTeamCount() StoreChannel {
 
 	return storeChannel
 }
+
+func (us SqlUserStore) AnalyticsGetSystemAdminCount() StoreChannel {
+
+	storeChannel := make(StoreChannel, 1)
+
+	go func() {
+		result := StoreResult{}
+
+		if count, err := us.GetReplica().SelectInt("SELECT count(*) FROM Users WHERE Roles LIKE :Roles", map[string]interface{}{"Roles": "%system_admin%"}); err != nil {
+			result.Err = model.NewLocAppError("SqlUserStore.AnalyticsGetSystemAdminCount", "store.sql_user.analytics_get_system_admin_count.app_error", nil, err.Error())
+		} else {
+			result.Data = count
+		}
+
+		storeChannel <- result
+		close(storeChannel)
+	}()
+
+	return storeChannel
+}

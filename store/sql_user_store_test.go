@@ -1384,3 +1384,40 @@ func TestUserStoreAnalyticsGetUsersWithTeamCount(t *testing.T) {
 		t.Fatal("Could not find test user in results ", u1.Id)
 	}
 }
+
+func TestUserStoreAnalyticsGetSystemAdminCount(t *testing.T) {
+	Setup()
+
+	var countBefore int64
+	if result := <-store.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		countBefore = result.Data.(int64)
+	}
+
+	u1 := model.User{}
+	u1.Email = model.NewId()
+	u1.Username = model.NewId()
+	u1.Roles = "system_user system_admin"
+
+	u2 := model.User{}
+	u2.Email = model.NewId()
+	u2.Username = model.NewId()
+
+	if err := (<-store.User().Save(&u1)).Err; err != nil {
+		t.Fatal("couldn't save user", err)
+	}
+
+	if err := (<-store.User().Save(&u2)).Err; err != nil {
+		t.Fatal("couldn't save user", err)
+	}
+
+	if result := <-store.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
+		t.Fatal(result.Err)
+	} else {
+		// We expect to find 1 more system admin than there was at the start of this test function.
+		if count := result.Data.(int64); count != countBefore + 1 {
+			t.Fatal("Did not get the expected number of system admins. Expected, got: ", countBefore + 1, count)
+		}
+	}
+}

@@ -5,13 +5,13 @@ package diagnostics
 
 import (
 	"runtime"
+	"strings"
 
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/segmentio/analytics-go"
 	"gopkg.in/square/go-jose.v1/json"
-	"strings"
 )
 
 const (
@@ -50,12 +50,12 @@ const (
 	TRACK_CONFIG_SUPPORT      = "support"
 	TRACK_CONFIG_NATIVEAPP    = "nativeapp"
 
-	TRACK_LICENSE  = "license"
 	TRACK_ACTIVITY = "activity"
 	TRACK_CHANNEL  = "channel"
+	TRACK_LICENSE  = "license"
+	TRACK_SERVER  = "server"
 	TRACK_TEAM     = "team"
 	TRACK_USER     = "user"
-	TRACK_VERSION  = "version"
 )
 
 var client *analytics.Client
@@ -67,9 +67,9 @@ func SendDailyDiagnostics() {
 		trackChannels()
 		trackConfig()
 		trackLicense()
+		trackServer()
 		trackTeams()
 		trackUsers()
-		trackVersion()
 	}
 }
 
@@ -418,6 +418,21 @@ func trackLicense() {
 	}
 }
 
+func trackServer() {
+	data := map[string]interface{}{
+		"edition":          model.BuildEnterpriseReady,
+		"version":          model.CurrentVersion,
+		"database_type":    utils.Cfg.SqlSettings.DriverName,
+		"operating_system": runtime.GOOS,
+	}
+
+	if scr := <-api.Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {
+		data["system_admins"] = scr.Data.(int64)
+	}
+
+	SendDiagnostic(TRACK_SERVER, data)
+}
+
 func trackTeams() {
 	if res := <-api.Srv.Store.Team().GetAll(); res.Err == nil {
 		for _, team := range res.Data.([]*model.Team) {
@@ -540,18 +555,4 @@ func trackUsers() {
 			SendDiagnostic(TRACK_USER, data)
 		}
 	}
-}
-
-func trackVersion() {
-	edition := model.BuildEnterpriseReady
-	version := model.CurrentVersion
-	database := utils.Cfg.SqlSettings.DriverName
-	operatingSystem := runtime.GOOS
-
-	SendDiagnostic(TRACK_VERSION, map[string]interface{}{
-		"edition":          edition,
-		"version":          version,
-		"database":         database,
-		"operating_system": operatingSystem,
-	})
 }
