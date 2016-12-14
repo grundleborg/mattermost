@@ -4,6 +4,7 @@
 package diagnostics
 
 import (
+	"encoding/json"
 	"runtime"
 	"strings"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/segmentio/analytics-go"
-	"gopkg.in/square/go-jose.v1/json"
 )
 
 const (
@@ -53,7 +53,8 @@ const (
 	TRACK_ACTIVITY = "activity"
 	TRACK_CHANNEL  = "channel"
 	TRACK_LICENSE  = "license"
-	TRACK_SERVER  = "server"
+	TRACK_SERVER   = "server"
+	TRACK_SESSION  = "session"
 	TRACK_TEAM     = "team"
 	TRACK_USER     = "user"
 )
@@ -67,6 +68,7 @@ func SendDailyDiagnostics() {
 		trackChannels()
 		trackConfig()
 		trackLicense()
+		trackSessions()
 		trackServer()
 		trackTeams()
 		trackUsers()
@@ -111,6 +113,16 @@ func getPref(name string, prefs model.Preferences) string {
 		}
 	}
 
+	return ""
+}
+
+func extractOsName(props map[string]interface{}) string {
+	_ = props
+	return ""
+}
+
+func extractBrowserName(props map[string]interface{}) string {
+	_ = props
 	return ""
 }
 
@@ -431,6 +443,23 @@ func trackServer() {
 	}
 
 	SendDiagnostic(TRACK_SERVER, data)
+}
+
+func trackSessions() {
+	if res := <-api.Srv.Store.Session().AnalyticsGetAllSessions(); res.Err == nil {
+		for _, session := range res.Data.([]*model.Session) {
+			data := map[string]interface{}{
+				"user_id": session.UserId,
+				"session_id": session.Id,
+				"first_active_time": session.CreateAt,
+				"last_active_time": session.LastActivityAt,
+				"os_string": session.Props["os"],
+				"browser_string": session.Props["browser"]
+			}
+
+			SendDiagnostic(TRACK_SESSION, data)
+		}
+	}
 }
 
 func trackTeams() {
