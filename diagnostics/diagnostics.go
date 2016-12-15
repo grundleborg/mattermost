@@ -15,20 +15,7 @@ import (
 )
 
 const (
-	DIAGNOSTIC_URL = "https://d7zmvsa9e04kk.cloudfront.net"
 	SEGMENT_KEY    = "fwb7VPbFeQ7SKp3wHm1RzFUuXZudqVok"
-
-	PROP_DIAGNOSTIC_ID                = "id"
-	PROP_DIAGNOSTIC_CATEGORY          = "c"
-	VAL_DIAGNOSTIC_CATEGORY_DEFAULT   = "d"
-	PROP_DIAGNOSTIC_BUILD             = "b"
-	PROP_DIAGNOSTIC_ENTERPRISE_READY  = "be"
-	PROP_DIAGNOSTIC_DATABASE          = "db"
-	PROP_DIAGNOSTIC_OS                = "os"
-	PROP_DIAGNOSTIC_USER_COUNT        = "uc"
-	PROP_DIAGNOSTIC_TEAM_COUNT        = "tc"
-	PROP_DIAGNOSTIC_ACTIVE_USER_COUNT = "auc"
-	PROP_DIAGNOSTIC_UNIT_TESTS        = "ut"
 
 	TRACK_CONFIG_SERVICE      = "config_service"
 	TRACK_CONFIG_TEAM         = "config_team"
