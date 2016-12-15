@@ -5,15 +5,34 @@ package diagnostics
 
 import (
 	"io/ioutil"
-	"github.com/mattermost/platform/api"
-	"github.com/mattermost/platform/utils"
 	"net/http"
-	"strconv"
 	"net/url"
+	"strconv"
 	"runtime"
+
+	l4g "github.com/alecthomas/log4go"
+	"github.com/mattermost/platform/api"
+	"github.com/mattermost/platform/model"
+	"github.com/mattermost/platform/utils"
 )
 
-func DoSecurity() {
+const (
+	SECURITY_URL = "https://d7zmvsa9e04kk.cloudfront.net"
+
+	PROP_SECURITY_ID                = "id"
+	PROP_SECURITY_CATEGORY          = "c"
+	VAL_SECURITY_CATEGORY_DEFAULT   = "d"
+	PROP_SECURITY_BUILD             = "b"
+	PROP_SECURITY_ENTERPRISE_READY  = "be"
+	PROP_SECURITY_DATABASE          = "db"
+	PROP_SECURITY_OS                = "os"
+	PROP_SECURITY_USER_COUNT        = "uc"
+	PROP_SECURITY_TEAM_COUNT        = "tc"
+	PROP_SECURITY_ACTIVE_USER_COUNT = "auc"
+	PROP_SECURITY_UNIT_TESTS        = "ut"
+)
+
+func DoSecurityUpdateCheck() {
 	if *utils.Cfg.ServiceSettings.EnableSecurityFixAlert {
 		if result := <-api.Srv.Store.System().Get(); result.Err == nil {
 			props := result.Data.(model.StringMap)
@@ -25,17 +44,17 @@ func DoSecurity() {
 
 				v := url.Values{}
 
-				v.Set(diagnostics.PROP_DIAGNOSTIC_ID, utils.CfgDiagnosticId)
-				v.Set(diagnostics.PROP_DIAGNOSTIC_BUILD, model.CurrentVersion+"."+model.BuildNumber)
-				v.Set(diagnostics.PROP_DIAGNOSTIC_ENTERPRISE_READY, model.BuildEnterpriseReady)
-				v.Set(diagnostics.PROP_DIAGNOSTIC_DATABASE, utils.Cfg.SqlSettings.DriverName)
-				v.Set(diagnostics.PROP_DIAGNOSTIC_OS, runtime.GOOS)
-				v.Set(diagnostics.PROP_DIAGNOSTIC_CATEGORY, diagnostics.VAL_DIAGNOSTIC_CATEGORY_DEFAULT)
+				v.Set(PROP_SECURITY_ID, utils.CfgDiagnosticId)
+				v.Set(PROP_SECURITY_BUILD, model.CurrentVersion+"."+model.BuildNumber)
+				v.Set(PROP_SECURITY_ENTERPRISE_READY, model.BuildEnterpriseReady)
+				v.Set(PROP_SECURITY_DATABASE, utils.Cfg.SqlSettings.DriverName)
+				v.Set(PROP_SECURITY_OS, runtime.GOOS)
+				v.Set(PROP_SECURITY_CATEGORY, VAL_SECURITY_CATEGORY_DEFAULT)
 
 				if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
-					v.Set(diagnostics.PROP_DIAGNOSTIC_UNIT_TESTS, "1")
+					v.Set(PROP_SECURITY_UNIT_TESTS, "1")
 				} else {
-					v.Set(diagnostics.PROP_DIAGNOSTIC_UNIT_TESTS, "0")
+					v.Set(PROP_SECURITY_UNIT_TESTS, "0")
 				}
 
 				systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
@@ -46,18 +65,18 @@ func DoSecurity() {
 				}
 
 				if ucr := <-api.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
-					v.Set(diagnostics.PROP_DIAGNOSTIC_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+					v.Set(PROP_SECURITY_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 
 				if ucr := <-api.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
-					v.Set(diagnostics.PROP_DIAGNOSTIC_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+					v.Set(PROP_SECURITY_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 
 				if tcr := <-api.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-					v.Set(diagnostics.PROP_DIAGNOSTIC_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
+					v.Set(PROP_SECURITY_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
 				}
 
-				res, err := http.Get(diagnostics.DIAGNOSTIC_URL + "/security?" + v.Encode())
+				res, err := http.Get(SECURITY_URL + "/security?" + v.Encode())
 				if err != nil {
 					l4g.Error(utils.T("mattermost.security_info.error"))
 					return
@@ -76,7 +95,7 @@ func DoSecurity() {
 							} else {
 								users := results.Data.(map[string]*model.User)
 
-								resBody, err := http.Get(diagnostics.DIAGNOSTIC_URL + "/bulletins/" + bulletin.Id)
+								resBody, err := http.Get(SECURITY_URL + "/bulletins/" + bulletin.Id)
 								if err != nil {
 									l4g.Error(utils.T("mattermost.security_bulletin.error"))
 									return
