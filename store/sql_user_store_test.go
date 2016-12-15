@@ -1416,8 +1416,8 @@ func TestUserStoreAnalyticsGetSystemAdminCount(t *testing.T) {
 		t.Fatal(result.Err)
 	} else {
 		// We expect to find 1 more system admin than there was at the start of this test function.
-		if count := result.Data.(int64); count != countBefore + 1 {
-			t.Fatal("Did not get the expected number of system admins. Expected, got: ", countBefore + 1, count)
+		if count := result.Data.(int64); count != countBefore+1 {
+			t.Fatal("Did not get the expected number of system admins. Expected, got: ", countBefore+1, count)
 		}
 	}
 }

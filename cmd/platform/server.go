@@ -146,7 +146,7 @@ func setDiagnosticId() {
 }
 
 func doSecurity() {
-	diagnostics.DoSecurityUpdateCheck();
+	diagnostics.DoSecurityUpdateCheck()
 }
 
 func doDiagnostics() {
