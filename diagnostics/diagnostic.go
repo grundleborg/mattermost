@@ -16,7 +16,7 @@ import (
 
 const (
 	DIAGNOSTIC_URL = "https://d7zmvsa9e04kk.cloudfront.net"
-	SEGMENT_KEY    = "bEfttzUTGXCHtTAjlwTQyNIrtXEtuKv8"
+	SEGMENT_KEY    = "fwb7VPbFeQ7SKp3wHm1RzFUuXZudqVok"
 
 	PROP_DIAGNOSTIC_ID                = "id"
 	PROP_DIAGNOSTIC_CATEGORY          = "c"
@@ -30,25 +30,25 @@ const (
 	PROP_DIAGNOSTIC_ACTIVE_USER_COUNT = "auc"
 	PROP_DIAGNOSTIC_UNIT_TESTS        = "ut"
 
-	TRACK_CONFIG_SERVICE      = "service"
-	TRACK_CONFIG_TEAM         = "team"
-	TRACK_CONFIG_SQL          = "sql"
-	TRACK_CONFIG_LOG          = "log"
-	TRACK_CONFIG_FILE         = "file"
-	TRACK_CONFIG_RATE         = "rate"
-	TRACK_CONFIG_EMAIL        = "email"
-	TRACK_CONFIG_PRIVACY      = "privacy"
-	TRACK_CONFIG_OAUTH        = "oauth"
-	TRACK_CONFIG_LDAP         = "ldap"
-	TRACK_CONFIG_COMPLIANCE   = "compliance"
-	TRACK_CONFIG_LOCALIZATION = "localization"
-	TRACK_CONFIG_SAML         = "saml"
-	TRACK_CONFIG_PASSWORD     = "password"
-	TRACK_CONFIG_CLUSTER      = "cluster"
-	TRACK_CONFIG_METRICS      = "metrics"
-	TRACK_CONFIG_WEBRTC       = "webrtc"
-	TRACK_CONFIG_SUPPORT      = "support"
-	TRACK_CONFIG_NATIVEAPP    = "nativeapp"
+	TRACK_CONFIG_SERVICE      = "config_service"
+	TRACK_CONFIG_TEAM         = "config_team"
+	TRACK_CONFIG_SQL          = "config_sql"
+	TRACK_CONFIG_LOG          = "config_log"
+	TRACK_CONFIG_FILE         = "config_file"
+	TRACK_CONFIG_RATE         = "config_rate"
+	TRACK_CONFIG_EMAIL        = "config_email"
+	TRACK_CONFIG_PRIVACY      = "config_privacy"
+	TRACK_CONFIG_OAUTH        = "config_oauth"
+	TRACK_CONFIG_LDAP         = "config_ldap"
+	TRACK_CONFIG_COMPLIANCE   = "config_compliance"
+	TRACK_CONFIG_LOCALIZATION = "config_localization"
+	TRACK_CONFIG_SAML         = "config_saml"
+	TRACK_CONFIG_PASSWORD     = "config_password"
+	TRACK_CONFIG_CLUSTER      = "config_cluster"
+	TRACK_CONFIG_METRICS      = "config_metrics"
+	TRACK_CONFIG_WEBRTC       = "config_webrtc"
+	TRACK_CONFIG_SUPPORT      = "config_support"
+	TRACK_CONFIG_NATIVEAPP    = "config_nativeapp"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_CHANNEL  = "channel"
@@ -113,16 +113,6 @@ func getPref(name string, prefs model.Preferences) string {
 		}
 	}
 
-	return ""
-}
-
-func extractOsName(props map[string]interface{}) string {
-	_ = props
-	return ""
-}
-
-func extractBrowserName(props map[string]interface{}) string {
-	_ = props
 	return ""
 }
 
@@ -453,8 +443,9 @@ func trackSessions() {
 				"session_id": session.Id,
 				"first_active_time": session.CreateAt,
 				"last_active_time": session.LastActivityAt,
-				"os_string": session.Props["os"],
-				"browser_string": session.Props["browser"]
+				"os": session.Props["os"],
+				"browser": session.Props["browser"],
+				"platform": session.Props["platform"],
 			}
 
 			SendDiagnostic(TRACK_SESSION, data)
