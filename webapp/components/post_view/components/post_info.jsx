@@ -53,10 +53,7 @@ export default class PostInfo extends React.Component {
     }
 
     createDropdown() {
-        var post = this.props.post;
-
-        this.canDelete = PostUtils.canDeletePost(post);
-        this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
+        const post = this.props.post;
 
         if (post.state === Constants.POST_FAILED || post.state === Constants.POST_LOADING) {
             return '';
@@ -237,13 +234,33 @@ export default class PostInfo extends React.Component {
         GlobalActions.emitRemovePost(this.props.post);
     }
 
-    createRemovePostButton() {
+    createRemovePostButton(isPostEphemeral) {
+        let removeAction = this.removePost;
+
+        if (!isPostEphemeral) {
+            const post = this.props.post;
+
+            let type = 'Post';
+            if (post.root_id && post.root_id.length > 0) {
+                type = 'Comment';
+            }
+
+            let dataComments = 0;
+            if (type === 'Post') {
+                dataComments = this.props.commentCount;
+            }
+
+            removeAction = () => {
+                GlobalActions.showDeletePostModal(post, dataComments);
+            };
+        }
+
         return (
             <a
                 href='#'
                 className='post__remove theme'
                 type='button'
-                onClick={this.removePost}
+                onClick={removeAction}
             >
                 {'×'}
             </a>
@@ -266,6 +283,11 @@ export default class PostInfo extends React.Component {
         var showCommentClass = '';
         var commentCountText = this.props.commentCount;
         const flagIcon = Constants.FLAG_ICON_SVG;
+
+        this.canDelete = PostUtils.canDeletePost(post);
+        this.canEdit = PostUtils.canEditPost(post, this.editDisableAction);
+
+        const isSystemMessage = post.type && post.type.startsWith(Constants.SYSTEM_MESSAGE_PREFIX);
 
         if (this.props.commentCount >= 1) {
             showCommentClass = ' icon--show';
@@ -290,10 +312,10 @@ export default class PostInfo extends React.Component {
         }
 
         let options;
-        if (Utils.isPostEphemeral(post)) {
+        if (Utils.isPostEphemeral(post) || (post.state !== Constants.POST_FAILED && post.state !== Constants.POST_LOADING && this.canDelete && isSystemMessage)) {
             options = (
                 <li className='col col__remove'>
-                    {this.createRemovePostButton()}
+                    {this.createRemovePostButton(Utils.isPostEphemeral(post))}
                 </li>
             );
         } else if (!PostUtils.isSystemMessage(post)) {
