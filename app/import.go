@@ -49,7 +49,7 @@ func BulkImport(fileReader io.Reader) *model.AppError {
 
 		var line LineImportData
 		if err := decoder.Decode(&line); err != nil {
-			return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, err.Error())
+			return model.NewLocAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error())
 		} else {
 			if err := ImportLine(line); err != nil {
 				return err
@@ -58,7 +58,7 @@ func BulkImport(fileReader io.Reader) *model.AppError {
 	}
 
 	if err := scanner.Err(); err != nil {
-		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, err.Error())
+		return model.NewLocAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error())
 	}
 
 	return nil
@@ -68,19 +68,19 @@ func ImportLine(line LineImportData) *model.AppError {
 	switch {
 	case line.Type == "team":
 		if line.Team == nil {
-			return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, "")
+			return model.NewLocAppError("BulkImport", "app.import.import_line.null_team.error", nil, "")
 		} else {
 			return ImportTeam(line.Team)
 		}
 	default:
-		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, "")
+		return model.NewLocAppError("BulkImport", "app.import.import_line.unknown_line_type.error", nil, "")
 	}
 }
 
 func ImportTeam(data *TeamImportData) *model.AppError {
 	// Validate the Import Data.
 	if err := validateTeamImportData(data); err != nil {
-		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, err.Error())
+		return err
 	}
 
 	// Prepopulate the team if it already exists.
