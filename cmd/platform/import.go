@@ -23,8 +23,17 @@ var slackImportCmd = &cobra.Command{
 	RunE:    slackImportCmdF,
 }
 
+var bulkImportCmd = &cobra.Command{
+	Use:     "bulk [file]",
+	Short:   "Import bulk data.",
+	Long:    "Import data from a Mattermost Bulk Import File.",
+	Example: "  import bulk bulk_data.json",
+	RunE:    bulkImportCmdF,
+}
+
 func init() {
 	importCmd.AddCommand(
+		bulkImportCmd,
 		slackImportCmd,
 	)
 }
@@ -57,6 +66,30 @@ func slackImportCmdF(cmd *cobra.Command, args []string) error {
 	app.SlackImport(fileReader, fileInfo.Size(), team.Id)
 
 	CommandPrettyPrintln("Finished Slack Import.")
+
+	return nil
+}
+
+func bulkImportCmdF(cmd *cobra.Command, args []string) error {
+	initDBCommandContextCobra(cmd)
+
+	if len(args) != 1 {
+		return errors.New("Incorrect number of arguments.")
+	}
+
+	fileReader, err := os.Open(args[0])
+	if err != nil {
+		return err
+	}
+	defer fileReader.Close()
+
+	CommandPrettyPrintln("Running Bulk Import. This may take a long time.")
+
+	if err := app.BulkImport(fileReader); err != nil {
+		CommandPrettyPrint(err.Error())
+	}
+
+	CommandPrettyPrintln("Finished Bulk Import.")
 
 	return nil
 }
