@@ -25,9 +25,15 @@ type LineImportData struct {
 }
 
 type TeamImportData struct {
-	Name        *string `json:"name"`
-	DisplayName *string `json:"display_name"`
-	Type        *string `json:"type"`
+	Name            *string `json:"name"`
+	DisplayName     *string `json:"display_name"`
+	Type            *string `json:"type"`
+	CreateAt        *int64  `json:"create_at"`
+	UpdateAt        *int64  `json:"update_at"`
+	DeleteAt        *int64  `json:"delete_at"`
+	Description     *string `json:"description"`
+	AllowedDomains  *string `json:"allowed_domains"`
+	AllowOpenInvite *bool   `json:"allow_open_invite"`
 }
 
 //
@@ -90,6 +96,30 @@ func ImportTeam(data *TeamImportData) *model.AppError {
 	team.DisplayName = *data.DisplayName
 	team.Type = *data.Type
 
+	if data.CreateAt != nil {
+		team.CreateAt = *data.CreateAt
+	}
+
+	if data.UpdateAt != nil {
+		team.UpdateAt = *data.UpdateAt
+	}
+
+	if data.DeleteAt != nil {
+		team.DeleteAt = *data.DeleteAt
+	}
+
+	if data.Description != nil {
+		team.Description = *data.Description
+	}
+
+	if data.AllowedDomains != nil {
+		team.AllowedDomains = *data.AllowedDomains
+	}
+
+	if data.AllowOpenInvite != nil {
+		team.AllowOpenInvite = *data.AllowOpenInvite
+	}
+
 	// Create/Update the Team.
 	if team.Id == "" {
 		if _, err := CreateTeam(team); err != nil {
@@ -106,16 +136,43 @@ func ImportTeam(data *TeamImportData) *model.AppError {
 }
 
 func validateTeamImportData(data *TeamImportData) *model.AppError {
+
 	if data.Name == nil {
-		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, "")
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.name_missing.error", nil, "")
+	} else if len(*data.Name) > model.TEAM_NAME_MAX_LENGTH {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.name_length.error", nil, "")
+	} else if model.IsReservedTeamName(*data.Name) {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.name_reserved.error", nil, "")
+	} else if !model.IsValidTeamName(*data.Name) {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.name_characters.error", nil, "")
 	}
 
 	if data.DisplayName == nil {
-		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, "")
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.display_name_missing.error", nil, "")
+	} else if utf8.RuneCountInString(*data.DisplayName) == 0 || utf8.RuneCountInString(*data.DisplayName) > model.TEAM_DISPLAY_NAME_MAX_RUNES {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.display_name_length.error", nil, "")
 	}
 
-	if data.Type == nil || (*data.Type != model.TEAM_OPEN && *data.Type != model.TEAM_INVITE) {
-		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, "")
+	if data.Type == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.type_missing.error", nil, "")
+	} else if (*data.Type != model.TEAM_OPEN && *data.Type != model.TEAM_INVITE) {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.type_invalid.error", nil, "")
+	}
+
+	if data.CreateAt != nil && *data.CreateAt == 0 {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.create_at_zero.error", nil, "")
+	}
+
+	if data.UpdateAt != nil && *data.UpdateAt == 0 {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.update_at.error", nil, "")
+	}
+
+	if data.Description != nil && len(*data.Description) > model.TEAM_DESCRIPTION_MAX_LENGTH {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.display_name_length.error", nil, "")
+	}
+
+	if data.AllowedDomains != nil && len(*data.AllowedDomains) > model.TEAM_ALLOWED_DOMAINS_MAX_LENGTH {
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.allowed_domains_length.error", nil, "")
 	}
 
 	return nil
