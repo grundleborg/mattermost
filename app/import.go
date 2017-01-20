@@ -4,9 +4,12 @@
 package app
 
 import (
+	"bufio"
 	"bytes"
+	"encoding/json"
 	"io"
 	"regexp"
+	"strings"
 	"unicode/utf8"
 
 	l4g "github.com/alecthomas/log4go"
@@ -14,7 +17,112 @@ import (
 	"github.com/mattermost/platform/utils"
 )
 
+// Import Data Models
+
+type LineImportData struct {
+	Type string          `json:"type"`
+	Team *TeamImportData `json:"team"`
+}
+
+type TeamImportData struct {
+	Name        *string `json:"name"`
+	DisplayName *string `json:"display_name"`
+	Type        *string `json:"type"`
+}
+
 //
+// -- Bulk Import Functions --
+// These functions import data directly into the database. Security and permission checks are bypassed but validity is
+// still enforced.
+//
+
+func BulkImport(fileReader io.Reader) *model.AppError {
+	scanner := bufio.NewScanner(fileReader)
+	for scanner.Scan() {
+		decoder := json.NewDecoder(strings.NewReader(scanner.Text()))
+
+		var line LineImportData
+		if err := decoder.Decode(&line); err != nil {
+			return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, err.Error())
+		} else {
+			if err := ImportLine(line); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, err.Error())
+	}
+
+	return nil
+}
+
+func ImportLine(line LineImportData) *model.AppError {
+	switch {
+	case line.Type == "team":
+		if line.Team == nil {
+			return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, "")
+		} else {
+			return ImportTeam(line.Team)
+		}
+	default:
+		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, "")
+	}
+}
+
+func ImportTeam(data *TeamImportData) *model.AppError {
+	// Validate the Import Data.
+	if err := validateTeamImportData(data); err != nil {
+		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, err.Error())
+	}
+
+	// Prepopulate the team if it already exists.
+	var team *model.Team
+	if result := <-Srv.Store.Team().GetByName(*data.Name); result.Err == nil {
+		team = result.Data.(*model.Team)
+	} else {
+		team = &model.Team{}
+	}
+
+	// Set the fields on the Team object.
+	team.Name = *data.Name
+	team.DisplayName = *data.DisplayName
+	team.Type = *data.Type
+
+	// Create/Update the Team.
+	if team.Id == "" {
+		if _, err := CreateTeam(team); err != nil {
+			return err
+		}
+	} else {
+		if _, err := UpdateTeam(team); err != nil {
+			return err
+		}
+	}
+
+	// All Done.
+	return nil
+}
+
+func validateTeamImportData(data *TeamImportData) *model.AppError {
+	if data.Name == nil {
+		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, "")
+	}
+
+	if data.DisplayName == nil {
+		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, "")
+	}
+
+	if data.Type == nil || (*data.Type != model.TEAM_OPEN && *data.Type != model.TEAM_INVITE) {
+		return model.NewLocAppError("BulkImport", "app.import.bulk_impor.todo_error", nil, "")
+	}
+
+	return nil
+}
+
+//
+// -- Old SlackImport Functions --
 // Import functions are sutible for entering posts and users into the database without
 // some of the usual checks. (IsValid is still run)
 //
