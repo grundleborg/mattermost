@@ -30,7 +30,6 @@ type TeamImportData struct {
 	DisplayName     *string `json:"display_name"`
 	Type            *string `json:"type"`
 	CreateAt        *int64  `json:"create_at"`
-	UpdateAt        *int64  `json:"update_at"`
 	DeleteAt        *int64  `json:"delete_at"`
 	Description     *string `json:"description"`
 	AllowedDomains  *string `json:"allowed_domains"`
@@ -43,7 +42,6 @@ type ChannelImportData struct {
 	DisplayName *string `json:"display_name"`
 	Type          *string `json:"type"`
 	CreateAt      *int64  `json:"create_at"`
-	UpdateAt      *int64  `json:"update_at"`
 	DeleteAt      *int64  `json:"delete_at"`
 	Header        *string `json:"header"`
 	Purpose       *string `json:"purpose"`
@@ -119,10 +117,6 @@ func ImportTeam(data *TeamImportData) *model.AppError {
 		team.CreateAt = *data.CreateAt
 	}
 
-	if data.UpdateAt != nil {
-		team.UpdateAt = *data.UpdateAt
-	}
-
 	if data.DeleteAt != nil {
 		team.DeleteAt = *data.DeleteAt
 	}
@@ -182,10 +176,6 @@ func validateTeamImportData(data *TeamImportData) *model.AppError {
 		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.create_at_zero.error", nil, "")
 	}
 
-	if data.UpdateAt != nil && *data.UpdateAt == 0 {
-		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.update_at_zero.error", nil, "")
-	}
-
 	if data.Description != nil && len(*data.Description) > model.TEAM_DESCRIPTION_MAX_LENGTH {
 		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.description_length.error", nil, "")
 	}
@@ -227,10 +217,6 @@ func ImportChannel(data *ChannelImportData) *model.AppError {
 
 	if data.CreateAt != nil {
 		channel.CreateAt = *data.CreateAt
-	}
-
-	if data.UpdateAt != nil {
-		channel.UpdateAt = *data.UpdateAt
 	}
 
 	if data.DeleteAt != nil {
@@ -288,10 +274,6 @@ func validateChannelImportData(data *ChannelImportData) *model.AppError {
 
 	if data.CreateAt != nil && *data.CreateAt == 0 {
 		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.create_at_zero.error", nil, "")
-	}
-
-	if data.UpdateAt != nil && *data.UpdateAt == 0 {
-		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.update_at_zero.error", nil, "")
 	}
 
 	if data.Header != nil && utf8.RuneCountInString(*data.Header) > model.CHANNEL_HEADER_MAX_RUNES {
