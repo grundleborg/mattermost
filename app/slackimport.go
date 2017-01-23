@@ -470,7 +470,7 @@ func SlackAddChannels(teamId string, slackchannels []SlackChannel, posts map[str
 			Header:      sChannel.Topic["value"],
 		}
 		newChannel = SlackSanitiseChannelProperties(newChannel)
-		mChannel := ImportChannel(&newChannel)
+		mChannel := OldImportChannel(&newChannel)
 		if mChannel == nil {
 			// Maybe it already exists?
 			if result := <-Srv.Store.Channel().GetByName(teamId, sChannel.Name); result.Err != nil {

@@ -22,6 +22,7 @@ import (
 type LineImportData struct {
 	Type string          `json:"type"`
 	Team *TeamImportData `json:"team"`
+	Channel *ChannelImportData `json:"channel"`
 }
 
 type TeamImportData struct {
@@ -34,6 +35,18 @@ type TeamImportData struct {
 	Description     *string `json:"description"`
 	AllowedDomains  *string `json:"allowed_domains"`
 	AllowOpenInvite *bool   `json:"allow_open_invite"`
+}
+
+type ChannelImportData struct {
+	Team        *string `json:"team"`
+	Name *string `json:"name"`
+	DisplayName *string `json:"display_name"`
+	Type          *string `json:"type"`
+	CreateAt      *int64  `json:"create_at"`
+	UpdateAt      *int64  `json:"update_at"`
+	DeleteAt      *int64  `json:"delete_at"`
+	Header        *string `json:"header"`
+	Purpose       *string `json:"purpose"`
 }
 
 //
@@ -71,6 +84,12 @@ func ImportLine(line LineImportData) *model.AppError {
 			return model.NewLocAppError("BulkImport", "app.import.import_line.null_team.error", nil, "")
 		} else {
 			return ImportTeam(line.Team)
+		}
+	case line.Type == "channel":
+		if line.Channel == nil {
+			return model.NewLocAppError("BulkImport", "app.import.import_line.null_channel.error", nil, "")
+		} else {
+			return ImportChannel(line.Channel)
 		}
 	default:
 		return model.NewLocAppError("BulkImport", "app.import.import_line.unknown_line_type.error", nil, "")
@@ -164,15 +183,123 @@ func validateTeamImportData(data *TeamImportData) *model.AppError {
 	}
 
 	if data.UpdateAt != nil && *data.UpdateAt == 0 {
-		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.update_at.error", nil, "")
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.update_at_zero.error", nil, "")
 	}
 
 	if data.Description != nil && len(*data.Description) > model.TEAM_DESCRIPTION_MAX_LENGTH {
-		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.display_name_length.error", nil, "")
+		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.description_length.error", nil, "")
 	}
 
 	if data.AllowedDomains != nil && len(*data.AllowedDomains) > model.TEAM_ALLOWED_DOMAINS_MAX_LENGTH {
 		return model.NewLocAppError("BulkImport", "app.import.validate_team_import_data.allowed_domains_length.error", nil, "")
+	}
+
+	return nil
+}
+
+func ImportChannel(data *ChannelImportData) *model.AppError {
+	// Validate the Import Data.
+	if err := validateChannelImportData(data); err != nil {
+		return err
+	}
+
+	// Get the referenced Team.
+	var team *model.Team
+	if result := <-Srv.Store.Team().GetByName(*data.Team); result.Err != nil {
+		return model.NewLocAppError("BulkImport", "app.import.import_channel.team_not_found.error", nil, "")
+	} else {
+		team = result.Data.(*model.Team)
+	}
+
+	// Prepopulate the channel if it already exists.
+	var channel *model.Channel
+	if result := <-Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, *data.Name); result.Err == nil {
+		channel = result.Data.(*model.Channel)
+	} else {
+		channel = &model.Channel{}
+	}
+
+	// Set the fields on the Channel object.
+	channel.TeamId = team.Id
+	channel.Name = *data.Name
+	channel.DisplayName = *data.DisplayName
+	channel.Type = *data.Type
+
+	if data.CreateAt != nil {
+		channel.CreateAt = *data.CreateAt
+	}
+
+	if data.UpdateAt != nil {
+		channel.UpdateAt = *data.UpdateAt
+	}
+
+	if data.DeleteAt != nil {
+		channel.DeleteAt = *data.DeleteAt
+	}
+
+	if data.Header != nil {
+		channel.Header = *data.Header
+	}
+
+	if data.Purpose != nil {
+		channel.Purpose = *data.Purpose
+	}
+
+	// Create/Update the Channel.
+	if channel.Id == "" {
+		if _, err := CreateChannel(channel, false); err != nil {
+			return err
+		}
+	} else {
+		if _, err := UpdateChannel(channel); err != nil {
+			return err
+		}
+	}
+
+	// All Done.
+	return nil
+}
+
+func validateChannelImportData(data *ChannelImportData) *model.AppError {
+
+	if data.Team == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.team_missing.error", nil, "")
+	}
+
+	if data.Name == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.name_missing.error", nil, "")
+	} else if len(*data.Name) > model.CHANNEL_NAME_MAX_LENGTH {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.name_length.error", nil, "")
+	} else if !model.IsValidChannelIdentifier(*data.Name) {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.name_characters.error", nil, "")
+	}
+
+	if data.DisplayName == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.display_name_missing.error", nil, "")
+	} else if utf8.RuneCountInString(*data.DisplayName) == 0 || utf8.RuneCountInString(*data.DisplayName) > model.CHANNEL_DISPLAY_NAME_MAX_RUNES {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.display_name_length.error", nil, "")
+	}
+
+	if data.Type == nil {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.type_missing.error", nil, "")
+	} else if (*data.Type != model.CHANNEL_OPEN && *data.Type != model.CHANNEL_PRIVATE) {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.type_invalid.error", nil, "")
+	}
+
+	if data.CreateAt != nil && *data.CreateAt == 0 {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.create_at_zero.error", nil, "")
+	}
+
+	if data.UpdateAt != nil && *data.UpdateAt == 0 {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.update_at_zero.error", nil, "")
+	}
+
+	if data.Header != nil && utf8.RuneCountInString(*data.Header) > model.CHANNEL_HEADER_MAX_RUNES {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.header_length.error", nil, "")
+	}
+
+	if data.Purpose != nil && utf8.RuneCountInString(*data.Purpose) > model.CHANNEL_PURPOSE_MAX_RUNES {
+		return model.NewLocAppError("BulkImport", "app.import.validate_channel_import_data.purpose_length.error", nil, "")
 	}
 
 	return nil
@@ -238,7 +365,7 @@ func ImportUser(team *model.Team, user *model.User) *model.User {
 	}
 }
 
-func ImportChannel(channel *model.Channel) *model.Channel {
+func OldImportChannel(channel *model.Channel) *model.Channel {
 	if result := <-Srv.Store.Channel().Save(channel); result.Err != nil {
 		return nil
 	} else {
