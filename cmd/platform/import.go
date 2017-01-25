@@ -16,7 +16,7 @@ var importCmd = &cobra.Command{
 }
 
 var slackImportCmd = &cobra.Command{
-	Use:     "slack [team] [file]",
+	Use:     "slack [team] [file] [--apply]",
 	Short:   "Import a team from Slack.",
 	Long:    "Import a team from a Slack export zip file.",
 	Example: "  import slack myteam slack_export.zip",
@@ -32,6 +32,8 @@ var bulkImportCmd = &cobra.Command{
 }
 
 func init() {
+	bulkImportCmd.Flags().Bool("apply", false, "--apply")
+
 	importCmd.AddCommand(
 		bulkImportCmd,
 		slackImportCmd,
@@ -73,6 +75,11 @@ func slackImportCmdF(cmd *cobra.Command, args []string) error {
 func bulkImportCmdF(cmd *cobra.Command, args []string) error {
 	initDBCommandContextCobra(cmd)
 
+	apply, err := cmd.Flags().GetBool("apply")
+	if err != nil {
+		return errors.New("Apply flag error")
+	}
+
 	if len(args) != 1 {
 		return errors.New("Incorrect number of arguments.")
 	}
@@ -83,13 +90,25 @@ func bulkImportCmdF(cmd *cobra.Command, args []string) error {
 	}
 	defer fileReader.Close()
 
-	CommandPrettyPrintln("Running Bulk Import. This may take a long time.")
+	if apply {
+		CommandPrettyPrintln("Running Bulk Import. This may take a long time.")
+	} else {
+		CommandPrettyPrintln("Running Bulk Import Data Validation.")
+		CommandPrettyPrintln("** This checks the validity of the entities in the data file, but does not persist any changes **")
+		CommandPrettyPrintln("Use the --apply flag to perform the actual data import.")
+	}
 
-	if err := app.BulkImport(fileReader); err != nil {
+	CommandPrettyPrintln("")
+
+	if err := app.BulkImport(fileReader, !apply); err != nil {
 		CommandPrettyPrint(err.Error())
 	}
 
-	CommandPrettyPrintln("Finished Bulk Import.")
+	if apply {
+		CommandPrettyPrintln("Finished Bulk Import.")
+	} else {
+		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
+	}
 
 	return nil
 }

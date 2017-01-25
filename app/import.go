@@ -53,7 +53,7 @@ type ChannelImportData struct {
 // still enforced.
 //
 
-func BulkImport(fileReader io.Reader) *model.AppError {
+func BulkImport(fileReader io.Reader, dryRun bool) *model.AppError {
 	scanner := bufio.NewScanner(fileReader)
 	for scanner.Scan() {
 		decoder := json.NewDecoder(strings.NewReader(scanner.Text()))
@@ -62,7 +62,7 @@ func BulkImport(fileReader io.Reader) *model.AppError {
 		if err := decoder.Decode(&line); err != nil {
 			return model.NewLocAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error())
 		} else {
-			if err := ImportLine(line); err != nil {
+			if err := ImportLine(line, dryRun); err != nil {
 				return err
 			}
 		}
@@ -75,29 +75,34 @@ func BulkImport(fileReader io.Reader) *model.AppError {
 	return nil
 }
 
-func ImportLine(line LineImportData) *model.AppError {
+func ImportLine(line LineImportData, dryRun bool) *model.AppError {
 	switch {
 	case line.Type == "team":
 		if line.Team == nil {
 			return model.NewLocAppError("BulkImport", "app.import.import_line.null_team.error", nil, "")
 		} else {
-			return ImportTeam(line.Team)
+			return ImportTeam(line.Team, dryRun)
 		}
 	case line.Type == "channel":
 		if line.Channel == nil {
 			return model.NewLocAppError("BulkImport", "app.import.import_line.null_channel.error", nil, "")
 		} else {
-			return ImportChannel(line.Channel)
+			return ImportChannel(line.Channel, dryRun)
 		}
 	default:
 		return model.NewLocAppError("BulkImport", "app.import.import_line.unknown_line_type.error", nil, "")
 	}
 }
 
-func ImportTeam(data *TeamImportData) *model.AppError {
+func ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
 	// Validate the Import Data.
 	if err := validateTeamImportData(data); err != nil {
 		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
 	}
 
 	// Prepopulate the team if it already exists.
@@ -187,10 +192,15 @@ func validateTeamImportData(data *TeamImportData) *model.AppError {
 	return nil
 }
 
-func ImportChannel(data *ChannelImportData) *model.AppError {
+func ImportChannel(data *ChannelImportData, dryRun bool) *model.AppError {
 	// Validate the Import Data.
 	if err := validateChannelImportData(data); err != nil {
 		return err
+	}
+
+	// If this is a Dry Run, do not continue any further.
+	if dryRun {
+		return nil
 	}
 
 	// Get the referenced Team.
