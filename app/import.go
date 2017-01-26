@@ -53,26 +53,28 @@ type ChannelImportData struct {
 // still enforced.
 //
 
-func BulkImport(fileReader io.Reader, dryRun bool) *model.AppError {
+func BulkImport(fileReader io.Reader, dryRun bool) (*model.AppError, int) {
 	scanner := bufio.NewScanner(fileReader)
+	lineNumber := 0
 	for scanner.Scan() {
 		decoder := json.NewDecoder(strings.NewReader(scanner.Text()))
+		lineNumber++
 
 		var line LineImportData
 		if err := decoder.Decode(&line); err != nil {
-			return model.NewLocAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error())
+			return model.NewLocAppError("BulkImport", "app.import.bulk_import.json_decode.error", nil, err.Error()), lineNumber
 		} else {
 			if err := ImportLine(line, dryRun); err != nil {
-				return err
+				return err, lineNumber
 			}
 		}
 	}
 
 	if err := scanner.Err(); err != nil {
-		return model.NewLocAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error())
+		return model.NewLocAppError("BulkImport", "app.import.bulk_import.file_scan.error", nil, err.Error()), 0
 	}
 
-	return nil
+	return nil, 0
 }
 
 func ImportLine(line LineImportData, dryRun bool) *model.AppError {
@@ -90,7 +92,7 @@ func ImportLine(line LineImportData, dryRun bool) *model.AppError {
 			return ImportChannel(line.Channel, dryRun)
 		}
 	default:
-		return model.NewLocAppError("BulkImport", "app.import.import_line.unknown_line_type.error", nil, "")
+		return model.NewLocAppError("BulkImport", "app.import.import_line.unknown_line_type.error", map[string]interface{}{"Type": line.Type}, "")
 	}
 }
 
@@ -206,7 +208,7 @@ func ImportChannel(data *ChannelImportData, dryRun bool) *model.AppError {
 	// Get the referenced Team.
 	var team *model.Team
 	if result := <-Srv.Store.Team().GetByName(*data.Team); result.Err != nil {
-		return model.NewLocAppError("BulkImport", "app.import.import_channel.team_not_found.error", nil, "")
+		return model.NewLocAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, "")
 	} else {
 		team = result.Data.(*model.Team)
 	}

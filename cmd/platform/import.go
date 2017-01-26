@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/platform/app"
 	"github.com/spf13/cobra"
+	"fmt"
 )
 
 var importCmd = &cobra.Command{
@@ -100,8 +101,11 @@ func bulkImportCmdF(cmd *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("")
 
-	if err := app.BulkImport(fileReader, !apply); err != nil {
-		CommandPrettyPrint(err.Error())
+	if err, lineNumber := app.BulkImport(fileReader, !apply); err != nil {
+		CommandPrettyPrintln(err.Error())
+		if lineNumber != 0 {
+			CommandPrettyPrintln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
+		}
 	}
 
 	if apply {
