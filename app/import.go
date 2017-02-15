@@ -517,6 +517,11 @@ func ImportUserTeams(username string, data *[]UserTeamImportData) *model.AppErro
 			}
 		}
 
+		townSquareHandle := "town-square"
+		if err := ImportUserChannels(user, team, &[]UserChannelImportData{{Name: &townSquareHandle,},}); err != nil {
+			return err
+		}
+
 		if err := ImportUserChannels(user, team, tdata.Channels); err != nil {
 			return err
 		}

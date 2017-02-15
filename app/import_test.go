@@ -1157,6 +1157,17 @@ func TestImportImportUser(t *testing.T) {
 		t.Fatalf("Channel member properties not as expected")
 	}
 
+	// Check that the user has a membership of town-square with the appropriate roles.
+	if townSquare, err := GetChannelByName(channelName, team.Id); err != nil {
+		t.Fatalf("Failed to get town-square from database.")
+	} else {
+		if channelMember, err := GetChannelMember(townSquare.Id, user.Id); err != nil {
+			t.Fatalf("Failed to get channel member from database.")
+		} else if channelMember.Roles != "channel_user" || channelMember.NotifyProps["desktop"] != "default" || channelMember.NotifyProps["mark_unread"] != "all" {
+			t.Fatalf("Channel member properties not as expected")
+		}
+	}
+
 	// Test with the properties of the team and channel membership changed.
 	data.Teams = &[]UserTeamImportData{
 		{
