@@ -451,6 +451,7 @@ export default class Sidebar extends React.Component {
                 placement='right'
                 screens={screens}
                 overlayClass='tip-overlay--sidebar'
+                diagnosticsTag='tutorial_tip_2_channels'
             />
         );
     }
