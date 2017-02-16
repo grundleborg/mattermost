@@ -36,7 +36,7 @@ export default class TutorialIntroScreens extends React.Component {
         this.state = {currentScreen: 0};
     }
     handleNext() {
-        switch(this.state.currentScreen) {
+        switch (this.state.currentScreen) {
         case 0:
             trackEvent('tutorial', 'tutorial_screen_1_welcome_to_mattermost_next');
             break;
@@ -66,7 +66,7 @@ export default class TutorialIntroScreens extends React.Component {
     skipTutorial(e) {
         e.preventDefault();
 
-        switch(this.state.currentScreen) {
+        switch (this.state.currentScreen) {
         case 0:
             trackEvent('tutorial', 'tutorial_screen_1_welcome_to_mattermost_skip');
             break;
