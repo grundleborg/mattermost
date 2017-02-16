@@ -1402,60 +1402,6 @@ func TestChannelStoreGetMembersByIds(t *testing.T) {
 	}
 }
 
-func TestChannelStoreAnalyticsGetAll(t *testing.T) {
-	Setup()
-
-	o1 := model.Channel{}
-	o1.TeamId = model.NewId()
-	o1.DisplayName = "ChannelA"
-	o1.Name = "a" + model.NewId() + "b"
-	o1.Type = model.CHANNEL_OPEN
-	Must(store.Channel().Save(&o1))
-
-	o2 := model.Channel{}
-	o2.TeamId = model.NewId()
-	o2.DisplayName = "Channel2"
-	o2.Name = "a" + model.NewId() + "b"
-	o2.Type = model.CHANNEL_OPEN
-	Must(store.Channel().Save(&o2))
-
-	m1 := model.ChannelMember{}
-	m1.ChannelId = o1.Id
-	m1.UserId = model.NewId()
-	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	Must(store.Channel().SaveMember(&m1))
-
-	m2 := model.ChannelMember{}
-	m2.ChannelId = o1.Id
-	m2.UserId = model.NewId()
-	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
-	Must(store.Channel().SaveMember(&m2))
-
-	m3 := model.ChannelMember{}
-	m3.ChannelId = o1.Id
-	m3.UserId = model.NewId()
-	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
-	Must(store.Channel().SaveMember(&m3))
-
-	if result := <-store.Channel().AnalyticsGetAll(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		channels := result.Data.([]*model.ChannelWithMemberCount)
-		for _, channel := range channels {
-			if channel.Id == o1.Id {
-				if channel.MemberCount != 3 {
-					t.Fatal("Wrong number of members. Expected 3, got: ", channel.MemberCount)
-				}
-			}
-			if channel.Id == o2.Id {
-				if channel.MemberCount != 0 {
-					t.Fatal("Wrong number of members. Expected 0, got: ", channel.MemberCount)
-				}
-			}
-		}
-	}
-}
-
 func TestChannelStoreAnalyticsTypeCountForUser(t *testing.T) {
 	Setup()
 

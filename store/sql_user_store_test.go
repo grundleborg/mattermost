@@ -1508,37 +1508,6 @@ func TestUserStoreAnalyticsGetInactiveUsersCount(t *testing.T) {
 	}
 }
 
-func TestUserStoreAnalyticsGetUsersWithTeamCount(t *testing.T) {
-	Setup()
-
-	u1 := model.User{}
-	u1.Email = model.NewId()
-	u1.Username = model.NewId()
-
-	if err := (<-store.User().Save(&u1)).Err; err != nil {
-		t.Fatal("couldn't save user", err)
-	}
-
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
-	Must(store.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}))
-
-	if result := <-store.User().AnalyticsGetUsersWithTeamCount(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		users := result.Data.([]*model.UserWithTeamCount)
-		for _, user := range users {
-			if user.Id == u1.Id {
-				if user.TeamCount == 2 {
-					return
-				} else {
-					t.Fatal("Expected user to be in 2 teams but was in", user.TeamCount)
-				}
-			}
-		}
-		t.Fatal("Could not find test user in results ", u1.Id)
-	}
-}
-
 func TestUserStoreAnalyticsGetSystemAdminCount(t *testing.T) {
 	Setup()
 

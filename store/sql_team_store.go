@@ -687,30 +687,3 @@ func (s SqlTeamStore) RemoveAllMembersByUser(userId string) StoreChannel {
 
 	return storeChannel
 }
-
-func (s SqlTeamStore) AnalyticsGetTeamAdminCount(teamId string) StoreChannel {
-	storeChannel := make(StoreChannel, 1)
-
-	go func() {
-		result := StoreResult{}
-
-		count, err := s.GetReplica().SelectInt(`
-			SELECT COUNT(m.UserId)
-				from TeamMembers m
-			WHERE
-				m.TeamId = :TeamId
-				AND m.DeleteAt = 0
-				AND m.Roles LIKE '%team_admin%'
-			`, map[string]interface{}{"TeamId": teamId})
-		if err != nil {
-			result.Err = model.NewLocAppError("SqlTeamStore.AnalyticsGetTeamAdminCount", "store.sql_team.analytics_get_team_admin_count.app_error", nil, "teamId="+teamId+" "+err.Error())
-		} else {
-			result.Data = count
-		}
-
-		storeChannel <- result
-		close(storeChannel)
-	}()
-
-	return storeChannel
-}
