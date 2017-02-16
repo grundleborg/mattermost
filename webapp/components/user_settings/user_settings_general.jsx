@@ -128,7 +128,7 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.username = username;
 
-        trackEvent('api', 'api_users_update_username');
+        trackEvent('settings', 'user_settings_update', {field: 'username'});
 
         this.submitUser(user, Constants.UserUpdateEvents.USERNAME, false);
     }
@@ -146,7 +146,7 @@ class UserSettingsGeneralTab extends React.Component {
 
         user.nickname = nickname;
 
-        trackEvent('api', 'api_users_update_nickname');
+        trackEvent('settings', 'user_settings_update', {field: 'username'});
 
         this.submitUser(user, Constants.UserUpdateEvents.NICKNAME, false);
     }
@@ -166,7 +166,7 @@ class UserSettingsGeneralTab extends React.Component {
         user.first_name = firstName;
         user.last_name = lastName;
 
-        trackEvent('api', 'api_users_update_fullname');
+        trackEvent('settings', 'user_settings_update', {field: 'fullname'});
 
         this.submitUser(user, Constants.UserUpdateEvents.FULLNAME, false);
     }
@@ -196,7 +196,7 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.email = email;
-        trackEvent('api', 'api_users_update_email');
+        trackEvent('settings', 'user_settings_update', {field: 'email'});
         this.submitUser(user, Constants.UserUpdateEvents.EMAIL, true);
     }
 
@@ -235,6 +235,8 @@ class UserSettingsGeneralTab extends React.Component {
         if (!this.submitActive) {
             return;
         }
+
+        trackEvent('settings', 'user_settings_update', {field: 'picture'});
 
         const {formatMessage} = this.props.intl;
         const picture = this.state.picture;
@@ -275,6 +277,8 @@ class UserSettingsGeneralTab extends React.Component {
         }
 
         user.position = position;
+
+        trackEvent('settings', 'user_settings_update', {field: 'position'});
 
         this.submitUser(user, Constants.UserUpdateEvents.Position, false);
     }
