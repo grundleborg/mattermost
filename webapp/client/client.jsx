@@ -1666,37 +1666,8 @@ export default class Client {
 
         this.trackEvent('api', 'api_posts_create', {team_id: this.getTeamId(), channel_id: post.channel_id});
 
-        if (post.message.match(/\s#./)) {
-            this.trackEvent('api', 'api_posts_hashtag', {team_id: this.getTeamId(), channel_id: post.channel_id});
-        }
-
-        if (post.message.match(/\s@./)) {
-            this.trackEvent('api', 'api_posts_mentions', {team_id: this.getTeamId(), channel_id: post.channel_id});
-        }
-
-        // Regex lifted from https://github.com/mattermost/marked/blob/master/lib/marked.js for GFM URL matching.
-        if (post.message.match(/((?:[a-z][\w-]+:(?:\/{1,3}|[a-z0-9%])|www\d{0,3}[.]|[a-z0-9.-]+[.][a-z]{2,4}\/)(?:[^\s`!()[\]{};:'".,<>?«»“”‘’]|[`![\]{};:'".,<>?«»“”‘’](?=[^\s()<>])|\((?:[^\s()<>]|(?:\([^\s()<>]+\)))*\))+)/i)) {
-            this.trackEvent('api', 'api_posts_links', {team_id: this.getTeamId(), channel_id: post.channel_id});
-        }
-
-        if (post.message.match(/\s@all/)) {
-            this.trackEvent('api', 'api_posts_mentions_all', {team_id: this.getTeamId(), channel_id: post.channel_id});
-        }
-
-        if (post.message.match(/\s@channel/)) {
-            this.trackEvent('api', 'api_posts_mentions_channel', {team_id: this.getTeamId(), channel_id: post.channel_id});
-        }
-
-        if (post.message.match(/\s@here/)) {
-            this.trackEvent('api', 'api_posts_mentions_here', {team_id: this.getTeamId(), channel_id: post.channel_id});
-        }
-
         if (post.parent_id != null && post.parent_id !== '') {
             this.trackEvent('api', 'api_posts_replied', {team_id: this.getTeamId(), channel_id: post.channel_id});
-        }
-
-        if (post.message.match(/([\uE000-\uF8FF]|\uD83C[\uDF00-\uDFFF]|\uD83D[\uDC00-\uDDFF]|:[^\s]+:)/i)) {
-            this.trackEvent('api', 'api_posts_emoji', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
     }
 
