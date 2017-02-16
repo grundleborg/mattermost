@@ -144,16 +144,6 @@ export default class Client {
         }
     }
 
-    // Deprecated. This method will be removed in 3.7 as it is part of the Segment Analytics feature.
-    deprecatedTrack(category, action, label, property, value) { // eslint-disable-line no-unused-vars
-        // NO-OP for inherited classes to override
-    }
-
-    // Deprecated. This method will be removed in 3.7 as it is part of the Segment Analytics feature.
-    deprecatedTrackPage() {
-        // NO-OP for inherited classes to override
-    }
-
     trackEvent(category, event, properties) { // eslint-disable-line no-unused-vars
         // NO-OP for inherited classes to override
     }
@@ -202,9 +192,6 @@ export default class Client {
                 console.error(msg); // eslint-disable-line no-console
                 console.error(e); // eslint-disable-line no-console
             }
-
-            // Deprecated. Once analytics is removed, errors will be tracked differently in Diagnostics.
-            this.deprecatedTrack('api', 'api_weberror', methodName, 'message', msg);
 
             this.handleError(err, res);
 
@@ -432,7 +419,6 @@ export default class Client {
             attach('license', license, license.name).
             end(this.handleResponse.bind(this, 'uploadLicenseFile', success, error));
 
-        this.deprecatedTrack('api', 'api_license_upload');
         this.trackEvent('api', 'api_license_upload');
     }
 
@@ -480,7 +466,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'adminResetPassword', success, error));
 
-        this.deprecatedTrack('api', 'api_admin_reset_password');
         this.trackEvent('api', 'api_admin_reset_password');
     }
 
@@ -532,7 +517,6 @@ export default class Client {
             send(team).
             end(this.handleResponse.bind(this, 'createTeam', success, error));
 
-        this.deprecatedTrack('api', 'api_users_create', '', 'email', team.name);
         this.trackEvent('api', 'api_teams_create');
     }
 
@@ -545,7 +529,6 @@ export default class Client {
             send(team).
             end(this.handleResponse.bind(this, 'updateTeam', success, error));
 
-        this.deprecatedTrack('api', 'api_teams_update_name');
         this.trackEvent('api', 'api_teams_update_name', {team_id: this.getTeamId()});
     }
 
@@ -646,7 +629,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'inviteMembers', success, error));
 
-        this.deprecatedTrack('api', 'api_teams_invite_members');
         this.trackEvent('api', 'api_teams_invite_members', {team_id: this.getTeamId()});
     }
 
@@ -664,7 +646,6 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
 
-        this.deprecatedTrack('api', 'api_teams_invite_members');
         this.trackEvent('api', 'api_teams_invite_members', {team_id: nonEmptyTeamId});
     }
 
@@ -677,7 +658,6 @@ export default class Client {
             send({hash, data, invite_id: inviteId}).
             end(this.handleResponse.bind(this, 'addUserToTeam', success, error));
 
-        this.deprecatedTrack('api', 'api_teams_invite_members');
         this.trackEvent('api', 'api_teams_invite_members');
     }
 
@@ -695,7 +675,6 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'removeUserFromTeam', success, error));
 
-        this.deprecatedTrack('api', 'api_teams_remove_members');
         this.trackEvent('api', 'api_teams_remove_members', {team_id: nonEmptyTeamId});
     }
 
@@ -744,7 +723,6 @@ export default class Client {
             send(user).
             end(this.handleResponse.bind(this, 'createUser', success, error));
 
-        this.deprecatedTrack('api', 'api_users_create', '', 'email', user.email);
         this.trackEvent('api', 'api_users_create');
     }
 
@@ -758,10 +736,8 @@ export default class Client {
             end(this.handleResponse.bind(this, 'updateUser', success, error));
 
         if (type) {
-            this.deprecatedTrack('api', 'api_users_update_' + type);
             this.trackEvent('api', 'api_users_update_' + type);
         } else {
-            this.deprecatedTrack('api', 'api_users_update');
             this.trackEvent('api', 'api_users_update');
         }
     }
@@ -780,7 +756,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updatePassword', success, error));
 
-        this.deprecatedTrack('api', 'api_users_newpassword');
         this.trackEvent('api', 'api_users_newpassword');
     }
 
@@ -793,7 +768,6 @@ export default class Client {
             send(notifyProps).
             end(this.handleResponse.bind(this, 'updateUserNotifyProps', success, error));
 
-        this.deprecatedTrack('api', 'api_users_update_notification_settings');
         this.trackEvent('api', 'api_users_update_notification_settings');
     }
 
@@ -810,7 +784,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateUserRoles', success, error));
 
-        this.deprecatedTrack('api', 'api_users_update_user_roles');
         this.trackEvent('api', 'api_users_update_roles');
     }
 
@@ -828,7 +801,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateTeamMemberRoles', success, error));
 
-        this.deprecatedTrack('api', 'api_teams_update_member_roles');
         this.trackEvent('api', 'api_teams_update_member_roles', {team_id: teamId});
     }
 
@@ -845,7 +817,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateActive', success, error));
 
-        this.deprecatedTrack('api', 'api_users_update_active');
         this.trackEvent('api', 'api_users_update_active');
     }
 
@@ -861,7 +832,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'sendPasswordReset', success, error));
 
-        this.deprecatedTrack('api', 'api_users_send_password_reset');
         this.trackEvent('api', 'api_users_send_password_reset');
     }
 
@@ -878,7 +848,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'resetPassword', success, error));
 
-        this.deprecatedTrack('api', 'api_users_reset_password');
         this.trackEvent('api', 'api_users_reset_password');
     }
 
@@ -891,7 +860,6 @@ export default class Client {
             send({password, email, token, service}).
             end(this.handleResponse.bind(this, 'emailToOAuth', success, error));
 
-        this.deprecatedTrack('api', 'api_users_email_to_oauth');
         this.trackEvent('api', 'api_users_email_to_oauth');
     }
 
@@ -908,7 +876,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'oauthToEmail', success, error));
 
-        this.deprecatedTrack('api', 'api_users_oauth_to_email');
         this.trackEvent('api', 'api_users_oauth_to_email');
     }
 
@@ -928,7 +895,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'emailToLdap', success, error));
 
-        this.deprecatedTrack('api', 'api_users_email_to_ldap');
         this.trackEvent('api', 'api_users_email_to_ldap');
     }
 
@@ -947,7 +913,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'ldapToEmail', success, error));
 
-        this.deprecatedTrack('api', 'api_users_oauth_to_email');
         this.trackEvent('api', 'api_users_ldap_to_email');
     }
 
@@ -999,21 +964,18 @@ export default class Client {
     login(loginId, password, mfaToken, success, error) {
         this.doLogin({login_id: loginId, password, token: mfaToken}, success, error);
 
-        this.deprecatedTrack('api', 'api_users_login', '', 'login_id', loginId);
         this.trackEvent('api', 'api_users_login');
     }
 
     loginById(id, password, mfaToken, success, error) {
         this.doLogin({id, password, token: mfaToken}, success, error);
 
-        this.deprecatedTrack('api', 'api_users_login', '', 'id', id);
         this.trackEvent('api', 'api_users_login');
     }
 
     loginByLdap(loginId, password, mfaToken, success, error) {
         this.doLogin({login_id: loginId, password, token: mfaToken, ldap_only: 'true'}, success, error);
 
-        this.deprecatedTrack('api', 'api_users_login', '', 'login_id', loginId);
         this.trackEvent('api', 'api_users_login');
         this.trackEvent('api', 'api_users_login_ldap');
     }
@@ -1055,7 +1017,6 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'logout', success, error));
 
-        this.deprecatedTrack('api', 'api_users_logout');
         this.trackEvent('api', 'api_users_logout');
     }
 
@@ -1072,7 +1033,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'checkMfa', success, error));
 
-        this.deprecatedTrack('api', 'api_users_oauth_to_email');
         this.trackEvent('api', 'api_users_oauth_to_email');
     }
 
@@ -1289,7 +1249,6 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'uploadProfileImage', success, error));
 
-        this.deprecatedTrack('api', 'api_users_update_profile_picture');
         this.trackEvent('api', 'api_users_update_profile_picture');
     }
 
@@ -1304,7 +1263,6 @@ export default class Client {
             send(channel).
             end(this.handleResponse.bind(this, 'createChannel', success, error));
 
-        this.deprecatedTrack('api', 'api_channels_create', channel.type, 'name', channel.name);
         this.trackEvent('api', 'api_channels_create', {team_id: this.getTeamId()});
     }
 
@@ -1329,7 +1287,6 @@ export default class Client {
             send(channel).
             end(this.handleResponse.bind(this, 'updateChannel', success, error));
 
-        this.deprecatedTrack('api', 'api_channels_update');
         this.trackEvent('api', 'api_channels_update', {team_id: this.getTeamId(), channel_id: channel.id});
     }
 
@@ -1347,7 +1304,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateChannel', success, error));
 
-        this.deprecatedTrack('api', 'api_channels_header');
         this.trackEvent('api', 'api_channels_header', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
@@ -1365,7 +1321,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'updateChannelPurpose', success, error));
 
-        this.deprecatedTrack('api', 'api_channels_purpose');
         this.trackEvent('api', 'api_channels_purpose', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
@@ -1387,7 +1342,6 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'leaveChannel', success, error));
 
-        this.deprecatedTrack('api', 'api_channels_leave');
         this.trackEvent('api', 'api_channels_leave', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
@@ -1399,7 +1353,6 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'joinChannel', success, error));
 
-        this.deprecatedTrack('api', 'api_channels_join');
         this.trackEvent('api', 'api_channels_join', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
@@ -1411,7 +1364,6 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'joinChannelByName', success, error));
 
-        this.deprecatedTrack('api', 'api_channels_join_name');
         this.trackEvent('api', 'api_channels_join_name', {team_id: this.getTeamId()});
     }
 
@@ -1423,7 +1375,6 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'deleteChannel', success, error));
 
-        this.deprecatedTrack('api', 'api_channels_delete');
         this.trackEvent('api', 'api_channels_delete', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
@@ -1476,7 +1427,6 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'getChannel', success, error));
 
-        this.deprecatedTrack('api', 'api_channel_get');
         this.trackEvent('api', 'api_channel_get', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
@@ -1595,7 +1545,6 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'addChannelMember', success, error));
 
-        this.deprecatedTrack('api', 'api_channels_add_member');
         this.trackEvent('api', 'api_channels_add_member', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
@@ -1608,7 +1557,6 @@ export default class Client {
             send({user_id: userId}).
             end(this.handleResponse.bind(this, 'removeChannelMember', success, error));
 
-        this.deprecatedTrack('api', 'api_channels_remove_member');
         this.trackEvent('api', 'api_channels_remove_member', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
@@ -1647,7 +1595,6 @@ export default class Client {
             send({command, ...commandArgs}).
             end(this.handleResponse.bind(this, 'executeCommand', success, error));
 
-        this.deprecatedTrack('api', 'api_integrations_used');
         this.trackEvent('api', 'api_integrations_used');
     }
 
@@ -1660,7 +1607,6 @@ export default class Client {
             send(command).
             end(this.handleResponse.bind(this, 'addCommand', success, error));
 
-        this.deprecatedTrack('api', 'api_integrations_created');
         this.trackEvent('api', 'api_integrations_created');
     }
 
@@ -1673,7 +1619,6 @@ export default class Client {
             send(command).
             end(this.handleResponse.bind(this, 'editCommand', success, error));
 
-        this.deprecatedTrack('api', 'api_integrations_created');
         this.trackEvent('api', 'api_integrations_created');
     }
 
@@ -1686,7 +1631,6 @@ export default class Client {
             send({id: commandId}).
             end(this.handleResponse.bind(this, 'deleteCommand', success, error));
 
-        this.deprecatedTrack('api', 'api_integrations_deleted');
         this.trackEvent('api', 'api_integrations_deleted');
     }
 
@@ -1720,16 +1664,13 @@ export default class Client {
             send({...post, create_at: 0}).
             end(this.handleResponse.bind(this, 'createPost', success, error));
 
-        this.deprecatedTrack('api', 'api_posts_create', post.channel_id, 'length', post.message.length);
         this.trackEvent('api', 'api_posts_create', {team_id: this.getTeamId(), channel_id: post.channel_id});
 
         if (post.message.match(/\s#./)) {
-            this.deprecatedTrack('api', 'api_posts_hashtag');
             this.trackEvent('api', 'api_posts_hashtag', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
 
         if (post.message.match(/\s@./)) {
-            this.deprecatedTrack('api', 'api_posts_mentions');
             this.trackEvent('api', 'api_posts_mentions', {team_id: this.getTeamId(), channel_id: post.channel_id});
         }
 
@@ -1799,7 +1740,6 @@ export default class Client {
             send(post).
             end(this.handleResponse.bind(this, 'updatePost', success, error));
 
-        this.deprecatedTrack('api', 'api_posts_update');
         this.trackEvent('api', 'api_posts_update', {team_id: this.getTeamId(), channel_id: post.channel_id});
     }
 
@@ -1811,7 +1751,6 @@ export default class Client {
             accept('application/json').
             end(this.handleResponse.bind(this, 'deletePost', success, error));
 
-        this.deprecatedTrack('api', 'api_posts_delete');
         this.trackEvent('api', 'api_posts_delete', {team_id: this.getTeamId(), channel_id: channelId});
     }
 
@@ -1828,7 +1767,6 @@ export default class Client {
             send(data).
             end(this.handleResponse.bind(this, 'search', success, error));
 
-        this.deprecatedTrack('api', 'api_posts_search');
         this.trackEvent('api', 'api_posts_search', {team_id: this.getTeamId()});
     }
 
@@ -1973,7 +1911,6 @@ export default class Client {
             send(app).
             end(this.handleResponse.bind(this, 'registerOAuthApp', success, error));
 
-        this.deprecatedTrack('api', 'api_apps_register');
         this.trackEvent('api', 'api_apps_register');
     }
 
@@ -2064,7 +2001,6 @@ export default class Client {
             send(hook).
             end(this.handleResponse.bind(this, 'addIncomingHook', success, error));
 
-        this.deprecatedTrack('api', 'api_integrations_created');
         this.trackEvent('api', 'api_integrations_created', {team_id: this.getTeamId()});
     }
 
@@ -2077,7 +2013,6 @@ export default class Client {
             send({id: hookId}).
             end(this.handleResponse.bind(this, 'deleteIncomingHook', success, error));
 
-        this.deprecatedTrack('api', 'api_integrations_deleted');
         this.trackEvent('api', 'api_integrations_deleted', {team_id: this.getTeamId()});
     }
 
@@ -2099,7 +2034,6 @@ export default class Client {
             send(hook).
             end(this.handleResponse.bind(this, 'addOutgoingHook', success, error));
 
-        this.deprecatedTrack('api', 'api_integrations_created');
         this.trackEvent('api', 'api_integrations_created', {team_id: this.getTeamId()});
     }
 
@@ -2112,7 +2046,6 @@ export default class Client {
             send({id: hookId}).
             end(this.handleResponse.bind(this, 'deleteOutgoingHook', success, error));
 
-        this.deprecatedTrack('api', 'api_integrations_deleted');
         this.trackEvent('api', 'api_integrations_deleted', {team_id: this.getTeamId()});
     }
 

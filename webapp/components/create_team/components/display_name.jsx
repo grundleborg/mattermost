@@ -1,7 +1,6 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-import {deprecatedTrack} from 'actions/analytics_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 
 import Constants from 'utils/constants.jsx';
@@ -61,7 +60,6 @@ export default class TeamSignupDisplayNamePage extends React.Component {
     }
 
     render() {
-        deprecatedTrack('signup', 'signup_team_02_name');
         trackEvent('signup', 'signup_team_01_name');
 
         var nameError = null;

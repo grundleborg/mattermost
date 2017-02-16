@@ -29,7 +29,6 @@ import * as Utils from 'utils/utils.jsx';
 
 import en from 'i18n/en.json';
 import * as I18n from 'i18n/i18n.jsx';
-import {deprecatedTrackPage} from 'actions/analytics_actions.jsx';
 import {browserHistory} from 'react-router/es6';
 
 export function emitChannelClickEvent(channel) {
@@ -54,7 +53,6 @@ export function emitChannelClickEvent(channel) {
             AsyncClient.getChannelStats(chan.id, true);
             AsyncClient.viewChannel(chan.id, oldChannelId);
             loadPosts(chan.id);
-            deprecatedTrackPage();
         });
 
         // Mark previous and next channel as read

@@ -2,7 +2,6 @@
 // See License.txt for license information.
 
 import {checkIfTeamExists, createTeam} from 'actions/team_actions.jsx';
-import {deprecatedTrack} from 'actions/analytics_actions.jsx';
 import {trackEvent} from 'actions/diagnostics_actions.jsx';
 import Constants from 'utils/constants.jsx';
 import * as URL from 'utils/url.jsx';
@@ -107,7 +106,6 @@ export default class TeamUrl extends React.Component {
 
                 createTeam(teamSignup.team,
                     () => {
-                        deprecatedTrack('signup', 'signup_team_08_complete');
                         trackEvent('signup', 'signup_team_03_complete');
                     },
                     (err) => {
@@ -128,7 +126,6 @@ export default class TeamUrl extends React.Component {
     }
 
     render() {
-        deprecatedTrack('signup', 'signup_team_03_url');
         trackEvent('signup', 'signup_team_02_url');
 
         let nameError = null;
