@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/platform/api"
 	"github.com/mattermost/platform/api4"
 	"github.com/mattermost/platform/app"
-	"github.com/mattermost/platform/diagnostics"
 	"github.com/mattermost/platform/einterfaces"
 	"github.com/mattermost/platform/manualtesting"
 	"github.com/mattermost/platform/model"
@@ -161,11 +160,11 @@ func setDiagnosticId() {
 }
 
 func doSecurity() {
-	diagnostics.DoSecurityUpdateCheck()
+	app.DoSecurityUpdateCheck()
 }
 
 func doDiagnostics() {
 	if *utils.Cfg.LogSettings.EnableDiagnostics {
-		diagnostics.SendDailyDiagnostics()
+		app.SendDailyDiagnostics()
 	}
 }

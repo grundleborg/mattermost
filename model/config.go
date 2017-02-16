@@ -105,6 +105,8 @@ const (
 
 	WEBRTC_SETTINGS_DEFAULT_STUN_URI = ""
 	WEBRTC_SETTINGS_DEFAULT_TURN_URI = ""
+
+	ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS = 2500
 )
 
 type ServiceSettings struct {
@@ -926,7 +928,7 @@ func (o *Config) SetDefaults() {
 
 	if o.AnalyticsSettings.MaxUsersForStatistics == nil {
 		o.AnalyticsSettings.MaxUsersForStatistics = new(int)
-		*o.AnalyticsSettings.MaxUsersForStatistics = 2500
+		*o.AnalyticsSettings.MaxUsersForStatistics = ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS
 	}
 
 	if o.ComplianceSettings.Enable == nil {

@@ -1,12 +1,11 @@
 // Copyright (c) 2015 Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package diagnostics
+package app
 
 import (
 	"runtime"
 
-	"github.com/mattermost/platform/app"
 	"github.com/mattermost/platform/model"
 	"github.com/mattermost/platform/utils"
 	"github.com/segmentio/analytics-go"
@@ -34,6 +33,7 @@ const (
 	TRACK_CONFIG_WEBRTC       = "config_webrtc"
 	TRACK_CONFIG_SUPPORT      = "config_support"
 	TRACK_CONFIG_NATIVEAPP    = "config_nativeapp"
+	TRACK_CONFIG_ANALYTICS    = "config_analytics"
 
 	TRACK_ACTIVITY = "activity"
 	TRACK_LICENSE  = "license"
@@ -88,43 +88,43 @@ func trackActivity() {
 	var deletedPrivateChannelCount int64
 	var postsCount int64
 
-	if ucr := <-app.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+	if ucr := <-Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
 		userCount = ucr.Data.(int64)
 	}
 
-	if ucr := <-app.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
+	if ucr := <-Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
 		activeUserCount = ucr.Data.(int64)
 	}
 
-	if iucr := <-app.Srv.Store.Status().GetTotalActiveUsersCount(); iucr.Err == nil {
+	if iucr := <-Srv.Store.Status().GetTotalActiveUsersCount(); iucr.Err == nil {
 		inactiveUserCount = iucr.Data.(int64)
 	}
 
-	if tcr := <-app.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
+	if tcr := <-Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
 		teamCount = tcr.Data.(int64)
 	}
 
-	if ucc := <-app.Srv.Store.Channel().AnalyticsTypeCount("", "O"); ucc.Err == nil {
+	if ucc := <-Srv.Store.Channel().AnalyticsTypeCount("", "O"); ucc.Err == nil {
 		publicChannelCount = ucc.Data.(int64)
 	}
 
-	if pcc := <-app.Srv.Store.Channel().AnalyticsTypeCount("", "P"); pcc.Err == nil {
+	if pcc := <-Srv.Store.Channel().AnalyticsTypeCount("", "P"); pcc.Err == nil {
 		privateChannelCount = pcc.Data.(int64)
 	}
 
-	if dcc := <-app.Srv.Store.Channel().AnalyticsTypeCount("", "D"); dcc.Err == nil {
+	if dcc := <-Srv.Store.Channel().AnalyticsTypeCount("", "D"); dcc.Err == nil {
 		directChannelCount = dcc.Data.(int64)
 	}
 
-	if duccr := <-app.Srv.Store.Channel().AnalyticsTypeCount("", "O"); duccr.Err == nil {
+	if duccr := <-Srv.Store.Channel().AnalyticsTypeCount("", "O"); duccr.Err == nil {
 		deletedPublicChannelCount = duccr.Data.(int64)
 	}
 
-	if dpccr := <-app.Srv.Store.Channel().AnalyticsTypeCount("", "P"); dpccr.Err == nil {
+	if dpccr := <-Srv.Store.Channel().AnalyticsTypeCount("", "P"); dpccr.Err == nil {
 		deletedPrivateChannelCount = dpccr.Data.(int64)
 	}
 
-	if pcr := <-app.Srv.Store.Post().AnalyticsPostCount("", false, false); pcr.Err == nil {
+	if pcr := <-Srv.Store.Post().AnalyticsPostCount("", false, false); pcr.Err == nil {
 		postsCount = pcr.Data.(int64)
 	}
 
@@ -144,46 +144,56 @@ func trackActivity() {
 
 func trackConfig() {
 	SendDiagnostic(TRACK_CONFIG_SERVICE, map[string]interface{}{
-		"web_server_mode":                      *utils.Cfg.ServiceSettings.WebserverMode,
-		"enable_security_fix_alert":            *utils.Cfg.ServiceSettings.EnableSecurityFixAlert,
-		"enable_insecure_outgoing_connections": *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections,
-		"enable_incoming_webhooks":             utils.Cfg.ServiceSettings.EnableIncomingWebhooks,
-		"enable_outgoing_webhooks":             utils.Cfg.ServiceSettings.EnableOutgoingWebhooks,
-		"enable_commands":                      *utils.Cfg.ServiceSettings.EnableCommands,
-		"enable_only_admin_integrations":       *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations,
-		"enable_post_username_override":        utils.Cfg.ServiceSettings.EnablePostUsernameOverride,
-		"enable_post_icon_override":            utils.Cfg.ServiceSettings.EnablePostIconOverride,
-		"enable_custom_emoji":                  *utils.Cfg.ServiceSettings.EnableCustomEmoji,
-		"restrict_custom_emoji_creation":       *utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation,
-		"enable_testing":                       utils.Cfg.ServiceSettings.EnableTesting,
-		"enable_developer":                     *utils.Cfg.ServiceSettings.EnableDeveloper,
-		"enable_multifactor_authentication":    *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication,
-		"enforce_multifactor_authentication":   *utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication,
-		"enable_oauth_service_provider":        utils.Cfg.ServiceSettings.EnableOAuthServiceProvider,
-		"connection_security":                  *utils.Cfg.ServiceSettings.ConnectionSecurity,
-		"uses_letsencrypt":                     *utils.Cfg.ServiceSettings.UseLetsEncrypt,
-		"forward_80_to_443":                    *utils.Cfg.ServiceSettings.Forward80To443,
-		"maximum_login_attempts":               utils.Cfg.ServiceSettings.MaximumLoginAttempts,
-		"session_length_web_in_days":           *utils.Cfg.ServiceSettings.SessionLengthWebInDays,
-		"session_length_mobile_in_days":        *utils.Cfg.ServiceSettings.SessionLengthMobileInDays,
-		"session_length_sso_in_days":           *utils.Cfg.ServiceSettings.SessionLengthSSOInDays,
-		"session_cache_in_minutes":             *utils.Cfg.ServiceSettings.SessionCacheInMinutes,
-		"isdefault_site_url":                   isDefault(*utils.Cfg.ServiceSettings.SiteURL, model.SERVICE_SETTINGS_DEFAULT_SITE_URL),
-		"isdefault_tls_cert_file":              isDefault(*utils.Cfg.ServiceSettings.TLSCertFile, model.SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE),
-		"isdefault_tls_key_file":               isDefault(*utils.Cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
-		"isdefault_read_timeout":               isDefault(*utils.Cfg.ServiceSettings.ReadTimeout, model.SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT),
-		"isdefault_write_timeout":              isDefault(*utils.Cfg.ServiceSettings.WriteTimeout, model.SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT),
-		"isdefault_segment_developer_key":      isDefault(utils.Cfg.ServiceSettings.SegmentDeveloperKey, ""),
-		"isdefault_google_developer_key":       isDefault(utils.Cfg.ServiceSettings.GoogleDeveloperKey, ""),
-		"isdefault_allow_cors_from":            isDefault(*utils.Cfg.ServiceSettings.AllowCorsFrom, model.SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM),
+		"web_server_mode":                               *utils.Cfg.ServiceSettings.WebserverMode,
+		"enable_security_fix_alert":                     *utils.Cfg.ServiceSettings.EnableSecurityFixAlert,
+		"enable_insecure_outgoing_connections":          *utils.Cfg.ServiceSettings.EnableInsecureOutgoingConnections,
+		"enable_incoming_webhooks":                      utils.Cfg.ServiceSettings.EnableIncomingWebhooks,
+		"enable_outgoing_webhooks":                      utils.Cfg.ServiceSettings.EnableOutgoingWebhooks,
+		"enable_commands":                               *utils.Cfg.ServiceSettings.EnableCommands,
+		"enable_only_admin_integrations":                *utils.Cfg.ServiceSettings.EnableOnlyAdminIntegrations,
+		"enable_post_username_override":                 utils.Cfg.ServiceSettings.EnablePostUsernameOverride,
+		"enable_post_icon_override":                     utils.Cfg.ServiceSettings.EnablePostIconOverride,
+		"enable_custom_emoji":                           *utils.Cfg.ServiceSettings.EnableCustomEmoji,
+		"restrict_custom_emoji_creation":                *utils.Cfg.ServiceSettings.RestrictCustomEmojiCreation,
+		"enable_testing":                                utils.Cfg.ServiceSettings.EnableTesting,
+		"enable_developer":                              *utils.Cfg.ServiceSettings.EnableDeveloper,
+		"enable_multifactor_authentication":             *utils.Cfg.ServiceSettings.EnableMultifactorAuthentication,
+		"enforce_multifactor_authentication":            *utils.Cfg.ServiceSettings.EnforceMultifactorAuthentication,
+		"enable_oauth_service_provider":                 utils.Cfg.ServiceSettings.EnableOAuthServiceProvider,
+		"connection_security":                           *utils.Cfg.ServiceSettings.ConnectionSecurity,
+		"uses_letsencrypt":                              *utils.Cfg.ServiceSettings.UseLetsEncrypt,
+		"forward_80_to_443":                             *utils.Cfg.ServiceSettings.Forward80To443,
+		"maximum_login_attempts":                        utils.Cfg.ServiceSettings.MaximumLoginAttempts,
+		"session_length_web_in_days":                    *utils.Cfg.ServiceSettings.SessionLengthWebInDays,
+		"session_length_mobile_in_days":                 *utils.Cfg.ServiceSettings.SessionLengthMobileInDays,
+		"session_length_sso_in_days":                    *utils.Cfg.ServiceSettings.SessionLengthSSOInDays,
+		"session_cache_in_minutes":                      *utils.Cfg.ServiceSettings.SessionCacheInMinutes,
+		"isdefault_site_url":                            isDefault(*utils.Cfg.ServiceSettings.SiteURL, model.SERVICE_SETTINGS_DEFAULT_SITE_URL),
+		"isdefault_tls_cert_file":                       isDefault(*utils.Cfg.ServiceSettings.TLSCertFile, model.SERVICE_SETTINGS_DEFAULT_TLS_CERT_FILE),
+		"isdefault_tls_key_file":                        isDefault(*utils.Cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
+		"isdefault_read_timeout":                        isDefault(*utils.Cfg.ServiceSettings.ReadTimeout, model.SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT),
+		"isdefault_write_timeout":                       isDefault(*utils.Cfg.ServiceSettings.WriteTimeout, model.SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT),
+		"isdefault_segment_developer_key":               isDefault(utils.Cfg.ServiceSettings.SegmentDeveloperKey, ""),
+		"isdefault_google_developer_key":                isDefault(utils.Cfg.ServiceSettings.GoogleDeveloperKey, ""),
+		"isdefault_allow_cors_from":                     isDefault(*utils.Cfg.ServiceSettings.AllowCorsFrom, model.SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM),
+		"restrict_post_delete":                          *utils.Cfg.ServiceSettings.RestrictPostDelete,
+		"allow_edit_post":                               *utils.Cfg.ServiceSettings.AllowEditPost,
+		"post_edit_time_limit":                          *utils.Cfg.ServiceSettings.PostEditTimeLimit,
+		"enable_user_typing_messages":                   *utils.Cfg.ServiceSettings.EnableUserTypingMessages,
+		"time_between_user_typing_updates_milliseconds": *utils.Cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
+		"cluster_log_timeout_milliseconds":              *utils.Cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
 	})
 
 	SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
 		"enable_user_creation":                utils.Cfg.TeamSettings.EnableUserCreation,
 		"enable_team_creation":                utils.Cfg.TeamSettings.EnableTeamCreation,
 		"restrict_team_invite":                *utils.Cfg.TeamSettings.RestrictTeamInvite,
+		"restrict_public_channel_creation":    *utils.Cfg.TeamSettings.RestrictPublicChannelCreation,
+		"restrict_private_channel_creation":   *utils.Cfg.TeamSettings.RestrictPrivateChannelCreation,
 		"restrict_public_channel_management":  *utils.Cfg.TeamSettings.RestrictPublicChannelManagement,
 		"restrict_private_channel_management": *utils.Cfg.TeamSettings.RestrictPrivateChannelManagement,
+		"restrict_public_channel_deletion":    *utils.Cfg.TeamSettings.RestrictPublicChannelDeletion,
+		"restrict_private_channel_deletion":   *utils.Cfg.TeamSettings.RestrictPrivateChannelDeletion,
 		"enable_open_server":                  *utils.Cfg.TeamSettings.EnableOpenServer,
 		"enable_custom_brand":                 *utils.Cfg.TeamSettings.EnableCustomBrand,
 		"restrict_direct_message":             *utils.Cfg.TeamSettings.RestrictDirectMessage,
@@ -343,6 +353,10 @@ func trackConfig() {
 		"isdefault_stun_uri": isDefault(*utils.Cfg.WebrtcSettings.StunURI, model.WEBRTC_SETTINGS_DEFAULT_STUN_URI),
 		"isdefault_turn_uri": isDefault(*utils.Cfg.WebrtcSettings.TurnURI, model.WEBRTC_SETTINGS_DEFAULT_TURN_URI),
 	})
+
+	SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
+		"isdefault_max_users_for_statistics": isDefault(*utils.Cfg.AnalyticsSettings.MaxUsersForStatistics, model.ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS),
+	})
 }
 
 func trackLicense() {
@@ -373,7 +387,7 @@ func trackServer() {
 		"operating_system": runtime.GOOS,
 	}
 
-	if scr := <-app.Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {
+	if scr := <-Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {
 		data["system_admins"] = scr.Data.(int64)
 	}
 
