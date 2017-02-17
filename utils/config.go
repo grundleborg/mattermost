@@ -256,7 +256,6 @@ func getClientConfig(c *model.Config) map[string]string {
 	props["RestrictPrivateChannelDeletion"] = *c.TeamSettings.RestrictPrivateChannelDeletion
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(c.ServiceSettings.EnableOAuthServiceProvider)
-	props["SegmentDeveloperKey"] = c.ServiceSettings.SegmentDeveloperKey
 	props["GoogleDeveloperKey"] = c.ServiceSettings.GoogleDeveloperKey
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableIncomingWebhooks)
 	props["EnableOutgoingWebhooks"] = strconv.FormatBool(c.ServiceSettings.EnableOutgoingWebhooks)

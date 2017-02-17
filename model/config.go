@@ -121,7 +121,6 @@ type ServiceSettings struct {
 	ReadTimeout                              *int
 	WriteTimeout                             *int
 	MaximumLoginAttempts                     int
-	SegmentDeveloperKey                      string
 	GoogleDeveloperKey                       string
 	EnableOAuthServiceProvider               bool
 	EnableIncomingWebhooks                   bool

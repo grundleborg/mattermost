@@ -173,7 +173,6 @@ func trackConfig() {
 		"isdefault_tls_key_file":                        isDefault(*utils.Cfg.ServiceSettings.TLSKeyFile, model.SERVICE_SETTINGS_DEFAULT_TLS_KEY_FILE),
 		"isdefault_read_timeout":                        isDefault(*utils.Cfg.ServiceSettings.ReadTimeout, model.SERVICE_SETTINGS_DEFAULT_READ_TIMEOUT),
 		"isdefault_write_timeout":                       isDefault(*utils.Cfg.ServiceSettings.WriteTimeout, model.SERVICE_SETTINGS_DEFAULT_WRITE_TIMEOUT),
-		"isdefault_segment_developer_key":               isDefault(utils.Cfg.ServiceSettings.SegmentDeveloperKey, ""),
 		"isdefault_google_developer_key":                isDefault(utils.Cfg.ServiceSettings.GoogleDeveloperKey, ""),
 		"isdefault_allow_cors_from":                     isDefault(*utils.Cfg.ServiceSettings.AllowCorsFrom, model.SERVICE_SETTINGS_DEFAULT_ALLOW_CORS_FROM),
 		"restrict_post_delete":                          *utils.Cfg.ServiceSettings.RestrictPostDelete,
