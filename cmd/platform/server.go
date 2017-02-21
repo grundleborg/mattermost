@@ -96,6 +96,7 @@ func runServer(configFileLocation string) {
 	}
 
 	setDiagnosticId()
+	utils.RegenerateClientConfig()
 	go runSecurityJob()
 	go runDiagnosticsJob()
 
