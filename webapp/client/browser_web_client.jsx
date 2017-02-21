@@ -4,6 +4,7 @@
 import Client from './client.jsx';
 
 import TeamStore from 'stores/team_store.jsx';
+import UserStore from 'stores/user_store.jsx';
 import BrowserStore from 'stores/browser_store.jsx';
 
 import * as GlobalActions from 'actions/global_actions.jsx';
@@ -31,7 +32,7 @@ class WebClientClass extends Client {
     }
     trackEvent(category, event, props) {
         if (global.window && global.window.analytics) {
-            const properties = Object.assign({category, type: event}, props);
+            const properties = Object.assign({category, type: event, user_id: UserStore.getCurrentId()}, props);
             const options = {
                 context: {
                     ip: '0.0.0.0'
