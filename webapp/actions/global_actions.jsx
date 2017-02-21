@@ -93,6 +93,10 @@ export function emitInitialLoad(callback) {
                 global.window.mm_config = data.client_cfg;
                 global.window.mm_license = data.license_cfg;
 
+                if (global.window && global.window.analytics) {
+                    global.window.analytics.identify(global.window.mm_config.DiagnosticId);
+                }
+
                 UserStore.setNoAccounts(data.no_accounts);
 
                 if (data.user && data.user.id) {
