@@ -215,6 +215,7 @@ export default class PostViewController extends React.Component {
                 lastViewedBottom = new Date().getTime();
             }
 
+            console.log("onPostsViewJumpRequest(): jump type bottom")
             this.setState({
                 scrollType: ScrollTypes.BOTTOM,
                 lastViewedBottom
@@ -253,6 +254,7 @@ export default class PostViewController extends React.Component {
                 lastViewedBottom = new Date().getTime();
             }
 
+            console.log("onPostListScroll(): atBottom")
             this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom});
         } else {
             this.setState({scrollType: ScrollTypes.FREE});

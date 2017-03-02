@@ -107,7 +107,14 @@ export default class PostList extends React.Component {
         // consider the view to be at the bottom if it's within this many pixels of the bottom
         const atBottomMargin = 10;
 
-        return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - atBottomMargin;
+        console.log("isAtBottom() called");
+        const clientHeight = this.refs.postlist.clientHeight;
+        const scrollTop = this.refs.postlist.scrollTop;
+        const scrollHeight = this.refs.postlist.scrollHeight;
+        console.log("ClientHeight: " + clientHeight + " ScrollTop: " + scrollTop + " ScrollHeight: " + scrollHeight);
+        const result = this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - atBottomMargin;
+        console.log("Result: " + result);
+        return result;
     }
 
     handleScroll() {
@@ -414,6 +421,8 @@ export default class PostList extends React.Component {
     }
 
     updateScrolling() {
+        console.log("updateScrolling(): Scroll Type: " + this.props.scrollType);
+
         if (this.props.scrollType === ScrollTypes.BOTTOM) {
             this.scrollToBottom();
         } else if (this.props.scrollType === ScrollTypes.NEW_MESSAGE) {
