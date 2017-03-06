@@ -106,11 +106,11 @@ export default class PostList extends React.Component {
     isAtBottom() {
         // consider the view to be at the bottom if it's within this many pixels of the bottom
         const atBottomMargin = 10;
+
         return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - atBottomMargin;
     }
 
     handleScroll() {
-        console.log("Calling handleScroll()");
         // HACK FOR RHS -- REMOVE WHEN RHS DIES
         const childNodes = this.refs.postlistcontent.childNodes;
         for (let i = 0; i < childNodes.length; i++) {
@@ -465,7 +465,6 @@ export default class PostList extends React.Component {
                     this.prevScrollHeight = this.refs.postlist.scrollHeight;
                 }
             });
-
         }
     }
 
