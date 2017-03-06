@@ -252,7 +252,7 @@ export default class PostViewController extends React.Component {
             } else {
                 lastViewedBottom = new Date().getTime();
             }
-            
+
             this.setState({scrollType: ScrollTypes.BOTTOM, lastViewedBottom});
         } else {
             this.setState({scrollType: ScrollTypes.FREE});
