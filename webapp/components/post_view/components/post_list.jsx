@@ -52,8 +52,6 @@ export default class PostList extends React.Component {
         this.scrollHeight = 0;
         this.animationFrameId = 0;
 
-        this.scrollScroller = false;
-
         this.scrollStopAction = new DelayedAction(this.handleScrollStop);
 
         this.state = {
@@ -108,17 +106,7 @@ export default class PostList extends React.Component {
     isAtBottom() {
         // consider the view to be at the bottom if it's within this many pixels of the bottom
         const atBottomMargin = 10;
-
-        console.log("vvvvvvvvvvvvvvv");
-        console.log("isAtBottom() called");
-        const clientHeight = this.refs.postlist.clientHeight;
-        const scrollTop = this.refs.postlist.scrollTop;
-        const scrollHeight = this.refs.postlist.scrollHeight;
-        console.log("ClientHeight: " + clientHeight + " ScrollTop: " + scrollTop + " ScrollHeight: " + scrollHeight);
-        const result = this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - atBottomMargin;
-        console.log("Result: " + result);
-        console.log("^^^^^^^^^^^^^^^");
-        return result;
+        return this.refs.postlist.clientHeight + this.refs.postlist.scrollTop >= this.refs.postlist.scrollHeight - atBottomMargin;
     }
 
     handleScroll() {
@@ -201,10 +189,8 @@ export default class PostList extends React.Component {
         e.preventDefault();
 
         if (this.props.isFocusPost) {
-            console.log("!!!!!!!!! loadMorePostsTop: focused top true");
             return GlobalActions.emitLoadMorePostsFocusedTopEvent();
         }
-        console.log("!!!!!!!!! loadMorePostsTop: focused top false");
         return GlobalActions.emitLoadMorePostsEvent();
     }
 
@@ -428,8 +414,6 @@ export default class PostList extends React.Component {
     }
 
     updateScrolling() {
-        console.log("updateScrolling(): Scroll Type: " + this.props.scrollType);
-
         if (this.props.scrollType === ScrollTypes.BOTTOM) {
             this.scrollToBottom();
         } else if (this.props.scrollType === ScrollTypes.NEW_MESSAGE) {
@@ -475,26 +459,13 @@ export default class PostList extends React.Component {
                 });
             }
         } else if (this.refs.postlist.scrollHeight !== this.prevScrollHeight) {
-            console.log("Doing Jump.");
-            console.log(new Error().stack);
-            //if (!this.scrollScroller) {
-                this.scrollScroller = true;
-                window.requestAnimationFrame(() => {
-                    console.log("Executed scroll");
-                    if (this.jumpToPostNode && this.refs.postlist && this.refs.postlist.scrollHeight !== this.prevScrollHeight) {
-                        console.log("Actually executed scroll");
-                        console.log("Jump To Post Node:");
-                        console.log(this.jumpToPostNode);
-                        console.log("Prev Offset Top: " + this.prevOffsetTop);
-                        console.log("New scrollTop: ");
-                        let newScrollTop = this.refs.postlist.scrollTop + (this.jumpToPostNode.offsetTop - this.prevOffsetTop);
-                        console.log(newScrollTop);
-                        this.refs.postlist.scrollTop += (this.jumpToPostNode.offsetTop - this.prevOffsetTop);
-                        this.scrollScroller = false;
-                        this.prevScrollHeight = this.refs.postlist.scrollHeight;
-                    }
-                });
-            //}
+            window.requestAnimationFrame(() => {
+                if (this.jumpToPostNode && this.refs.postlist && this.refs.postlist.scrollHeight !== this.prevScrollHeight) {
+                    this.refs.postlist.scrollTop += (this.jumpToPostNode.offsetTop - this.prevOffsetTop);
+                    this.prevScrollHeight = this.refs.postlist.scrollHeight;
+                }
+            });
+
         }
     }
 
@@ -503,7 +474,6 @@ export default class PostList extends React.Component {
     }
 
     scrollToBottom() {
-        console.log("Called scrollToBottom()");
         this.animationFrameId = window.requestAnimationFrame(() => {
             if (this.refs.postlist) {
                 this.refs.postlist.scrollTop = this.refs.postlist.scrollHeight;
@@ -552,9 +522,6 @@ export default class PostList extends React.Component {
     }
 
     componentDidUpdate() {
-        console.log("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv");
-        console.log(new Error().stack);
-        console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         this.checkAndUpdateScrolling();
     }
 
