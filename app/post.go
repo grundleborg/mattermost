@@ -527,6 +527,23 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 		// don't allow users to search for everything
 		if params.Terms != "*" {
 			// channels = append(channels, Srv.Store.Post().Search(teamId, userId, params))
+
+			for idx, channelName := range params.InChannels {
+				if channel, err := GetChannelByName(channelName, teamId); err != nil {
+					l4g.Error(err)
+				} else {
+					params.InChannels[idx] = channel.Id
+				}
+			}
+
+			for idx, username := range params.FromUsers {
+				if user, err := GetUserByUsername(username); err != nil {
+					l4g.Error(err)
+				} else {
+					params.FromUsers[idx] = user.Id
+				}
+			}
+
 			finalParamsList = append(finalParamsList, params)
 		}
 	}
