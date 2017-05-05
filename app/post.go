@@ -532,7 +532,7 @@ func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bo
 	paramsList := model.ParseSearchParams(terms)
 
 	esInterface := einterfaces.GetElasticSearchInterface()
-	if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableSearching) {
+	if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableSearching && utils.IsLicensed && *utils.License.Features.ElasticSearch) {
 		finalParamsList := []*model.SearchParams{}
 
 		for _, params := range paramsList {
