@@ -317,7 +317,7 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 		if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing) {
 			go func() {
 				if rchannel := <-Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
-					// TODO: Notify Error.
+					l4g.Error("Couldn't get channel %v for post %v for ElasticSearch indexing.", rpost.ChannelId, rpost.Id)
 				} else {
 					esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
 				}

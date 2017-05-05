@@ -115,7 +115,9 @@ func runServer(configFileLocation string) {
 	}
 
 	if einterfaces.GetElasticSearchInterface() != nil {
-		einterfaces.GetElasticSearchInterface().Start()
+		if err := einterfaces.GetElasticSearchInterface().Start(); err != nil {
+			l4g.Error(err.Error())
+		}
 	}
 
 	// wait for kill signal before attempting to gracefully shutdown
