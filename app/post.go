@@ -126,8 +126,8 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 	}
 
 	esInterface := einterfaces.GetElasticSearchInterface()
-	if (esInterface != nil) {
-		esInterface.IndexPost(rpost, teamId)
+	if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing) {
+		go esInterface.IndexPost(rpost, teamId)
 	}
 
 	if einterfaces.GetMetricsInterface() != nil {
@@ -313,10 +313,15 @@ func UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError
 	} else {
 		rpost := result.Data.(*model.Post)
 
-		if rchannel := <-Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
-			// Notify Error.
-		} else {
-			einterfaces.GetElasticSearchInterface().IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
+		esInterface := einterfaces.GetElasticSearchInterface()
+		if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing) {
+			go func() {
+				if rchannel := <-Srv.Store.Channel().GetForPost(rpost.Id); rchannel.Err != nil {
+					// TODO: Notify Error.
+				} else {
+					esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
+				}
+			}()
 		}
 
 		sendUpdatedPostEvent(rpost)
@@ -494,7 +499,11 @@ func DeletePost(postId string) (*model.Post, *model.AppError) {
 		go Publish(message)
 		go DeletePostFiles(post)
 		go DeleteFlaggedPosts(post.Id)
-		go einterfaces.GetElasticSearchInterface().DeletePost(post.Id)
+
+		esInterface := einterfaces.GetElasticSearchInterface()
+		if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableIndexing) {
+			go esInterface.DeletePost(post.Id)
+		}
 
 		InvalidateCacheForChannelPosts(post.ChannelId)
 
@@ -521,70 +530,84 @@ func DeletePostFiles(post *model.Post) {
 
 func SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool) (*model.PostList, *model.AppError) {
 	paramsList := model.ParseSearchParams(terms)
-	finalParamsList := []*model.SearchParams{}
-	for _, params := range paramsList {
-		params.OrTerms = isOrSearch
-		// don't allow users to search for everything
-		if params.Terms != "*" {
-			// channels = append(channels, Srv.Store.Post().Search(teamId, userId, params))
 
-			for idx, channelName := range params.InChannels {
-				if channel, err := GetChannelByName(channelName, teamId); err != nil {
-					l4g.Error(err)
-				} else {
-					params.InChannels[idx] = channel.Id
+	esInterface := einterfaces.GetElasticSearchInterface()
+	if (esInterface != nil && *utils.Cfg.ElasticSearchSettings.EnableSearching) {
+		finalParamsList := []*model.SearchParams{}
+
+		for _, params := range paramsList {
+			params.OrTerms = isOrSearch
+			// Don't allow users to search for "*"
+			if params.Terms != "*" {
+				// Convert channel names to channel IDs
+				for idx, channelName := range params.InChannels {
+					if channel, err := GetChannelByName(channelName, teamId); err != nil {
+						l4g.Error(err)
+					} else {
+						params.InChannels[idx] = channel.Id
+					}
 				}
-			}
 
-			for idx, username := range params.FromUsers {
-				if user, err := GetUserByUsername(username); err != nil {
-					l4g.Error(err)
-				} else {
-					params.FromUsers[idx] = user.Id
+				// Convert usernames to user IDs
+				for idx, username := range params.FromUsers {
+					if user, err := GetUserByUsername(username); err != nil {
+						l4g.Error(err)
+					} else {
+						params.FromUsers[idx] = user.Id
+					}
 				}
-			}
 
-			finalParamsList = append(finalParamsList, params)
+				finalParamsList = append(finalParamsList, params)
+			}
 		}
-	}
 
-	/*
-	posts := model.NewPostList()
-	for _, channel := range channels {
-		if result := <-channel; result.Err != nil {
-			return nil, result.Err
+		// We only allow the user to search in channels they are a member of.
+		userChannels, err := GetChannelsForUser(teamId, userId)
+		if err != nil {
+			l4g.Error(err)
+			return nil, err
+		}
+
+		postIds, err := einterfaces.GetElasticSearchInterface().SearchPosts(userChannels, finalParamsList)
+		if err != nil {
+			return nil, err
+		}
+
+		// Get the posts
+		postList := model.NewPostList()
+		if presult := <-Srv.Store.Post().GetPostsByIds(postIds); presult.Err != nil {
+			return nil, presult.Err
 		} else {
-			data := result.Data.(*model.PostList)
-			posts.Extend(data)
+			for _, p := range presult.Data.([]*model.Post) {
+				postList.AddPost(p)
+				postList.AddOrder(p.Id)
+			}
 		}
-	}
 
-	return posts, nil
-	*/
-
-	userChannels, err := GetChannelsForUser(teamId, userId)
-	if err != nil {
-		l4g.Error(err)
-		return nil, err
-	}
-
-	postIds, err := einterfaces.GetElasticSearchInterface().SearchPosts(userChannels, finalParamsList)
-	if err != nil {
-		return nil, err
-	}
-
-	// Get the posts
-	postList := model.NewPostList()
-	if presult := <-Srv.Store.Post().GetPostsByIds(postIds); presult.Err != nil {
-		return nil, presult.Err
+		return postList, nil
 	} else {
-		for _, p := range presult.Data.([]*model.Post) {
-			postList.AddPost(p)
-			postList.AddOrder(p.Id)
-		}
-	}
+		channels := []store.StoreChannel{}
 
-	return postList, nil
+		for _, params := range paramsList {
+			params.OrTerms = isOrSearch
+			// don't allow users to search for everything
+			if params.Terms != "*" {
+				channels = append(channels, Srv.Store.Post().Search(teamId, userId, params))
+			}
+		}
+
+		posts := model.NewPostList()
+		for _, channel := range channels {
+			if result := <-channel; result.Err != nil {
+				return nil, result.Err
+			} else {
+				data := result.Data.(*model.PostList)
+				posts.Extend(data)
+			}
+		}
+
+		return posts, nil
+	}
 }
 
 func GetFileInfosForPost(postId string, readFromMaster bool) ([]*model.FileInfo, *model.AppError) {

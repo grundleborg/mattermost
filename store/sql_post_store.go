@@ -1296,7 +1296,7 @@ func (s SqlPostStore) GetPostsByIds(postIds []string) StoreChannel {
 
 		inClause := `'` + strings.Join(postIds, `', '`) + `'`
 
-		query := `SELECT * FROM Posts WHERE Id in (` + inClause + `) ORDER BY CreateAt DESC`
+		query := `SELECT * FROM Posts WHERE Id in (` + inClause + `) and DeleteAt = 0 ORDER BY CreateAt DESC`
 
 		var posts []*model.Post
 		_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{})
