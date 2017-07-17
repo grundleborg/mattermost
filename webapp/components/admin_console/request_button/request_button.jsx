@@ -100,7 +100,12 @@ export default class RequestButton extends React.Component {
          * the `message` and `detailed_error` properties of the error returned from the server,
          * otherwise false to include only the `message` property.
          */
-        includeDetailedError: PropTypes.bool
+        includeDetailedError: PropTypes.bool,
+
+        /**
+         * An element to display adjacent to the request button.
+         */
+        alternativeActionElement: PropTypes.element
     }
 
     static defaultProps = {
@@ -222,6 +227,7 @@ export default class RequestButton extends React.Component {
                         >
                             {contents}
                         </button>
+                        {this.props.alternativeActionElement}
                         {message}
                     </div>
                     <div className='help-text'>

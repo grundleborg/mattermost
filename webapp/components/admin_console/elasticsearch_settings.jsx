@@ -12,6 +12,7 @@ import {FormattedMessage} from 'react-intl';
 import SettingsGroup from './settings_group.jsx';
 import TextSetting from './text_setting.jsx';
 import RequestButton from './request_button/request_button.jsx';
+import ElasticsearchStatus from './elasticsearch_status';
 
 export default class ElasticsearchSettings extends AdminSettings {
     constructor(props) {
@@ -255,6 +256,9 @@ export default class ElasticsearchSettings extends AdminSettings {
                         />
                     }
                     disabled={!this.state.enableIndexing}
+                />
+                <ElasticsearchStatus
+                    isConfigured={!this.state.saveNeeded && this.state.enableIndexing}
                 />
                 <BooleanSetting
                     id='enableSearching'
