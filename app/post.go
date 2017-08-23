@@ -21,16 +21,14 @@ func CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	var channel *model.Channel
 	if result := <-Srv.Store.Channel().Get(post.ChannelId, true); result.Err != nil {
-		err := model.NewLocAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error())
-		err.StatusCode = http.StatusBadRequest
+		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error(), http.StatusBadRequest)
 		return nil, err
 	} else {
 		channel = result.Data.(*model.Channel)
 	}
 
 	if channel.DeleteAt != 0 {
-		err := model.NewLocAppError("createPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "")
-		err.StatusCode = http.StatusBadRequest
+		err := model.NewAppError("createPost", "api.post.create_post.can_not_post_to_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -70,11 +68,11 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 	// Verify the parent/child relationships are correct
 	if pchan != nil {
 		if presult := <-pchan; presult.Err != nil {
-			return nil, model.NewLocAppError("createPost", "api.post.create_post.root_id.app_error", nil, "")
+			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		} else {
 			list := presult.Data.(*model.PostList)
 			if len(list.Posts) == 0 || !list.IsChannelId(post.ChannelId) {
-				return nil, model.NewLocAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "")
+				return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
 			}
 
 			if post.ParentId == "" {
@@ -84,7 +82,7 @@ func CreatePost(post *model.Post, teamId string, triggerWebhooks bool) (*model.P
 			if post.RootId != post.ParentId {
 				parent := list.Posts[post.ParentId]
 				if parent == nil {
-					return nil, model.NewLocAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "")
+					return nil, model.NewAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "", http.StatusInternalServerError)
 				}
 			}
 		}
@@ -404,7 +402,7 @@ func GetPermalinkPost(postId string, userId string) (*model.PostList, *model.App
 		list := result.Data.(*model.PostList)
 
 		if len(list.Order) != 1 {
-			return nil, model.NewLocAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "")
+			return nil, model.NewAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "", http.StatusNotFound)
 		}
 		post := list.Posts[list.Order[0]]
 
