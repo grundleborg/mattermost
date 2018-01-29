@@ -379,12 +379,18 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannel(c.Session, channelId, model.PERMISSION_DELETE_POST) {
+	post, err := c.App.GetSinglePost(postId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if post.UserId == c.Session.UserId && !c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_DELETE_POST) {
 		c.SetPermissionError(model.PERMISSION_DELETE_POST)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, postId, model.PERMISSION_DELETE_OTHERS_POSTS) {
+	if post.UserId != c.Session.UserId && !c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_DELETE_OTHERS_POSTS) {
 		c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_POSTS)
 		return
 	}

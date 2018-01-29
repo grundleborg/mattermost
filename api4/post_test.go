@@ -645,7 +645,7 @@ func TestPatchPost(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.PatchPost(GenerateTestId(), patch)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	Client.Logout()
 	_, resp = Client.PatchPost(post.Id, patch)
@@ -1194,6 +1194,47 @@ func TestDeletePost(t *testing.T) {
 	if !status {
 		t.Fatal("post should return status OK")
 	}
+	CheckNoError(t, resp)
+
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Restrict deleting own posts to team admin.
+	th.AddPermissionToRole(model.PERMISSION_DELETE_POST.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_DELETE_POST.Id, model.CHANNEL_USER_ROLE_ID)
+
+	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	post = th.CreatePost()
+
+	_, resp = Client.DeletePost(post.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+
+	_, resp = Client.DeletePost(post.Id)
+	CheckNoError(t, resp)
+
+	// Restrict deleting others posts to system admin
+	th.AddPermissionToRole(model.PERMISSION_DELETE_OTHERS_POSTS.Id, model.SYSTEM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_DELETE_OTHERS_POSTS.Id, model.TEAM_ADMIN_ROLE_ID)
+
+	Client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
+	post = th.CreatePost()
+
+	Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	_, resp = Client.DeletePost(post.Id)
+	CheckForbiddenStatus(t, resp)
+
+	Client.Login(th.TeamAdminUser.Email, th.TeamAdminUser.Password)
+
+	_, resp = Client.DeletePost(post.Id)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.DeletePost(post.Id)
 	CheckNoError(t, resp)
 }
 

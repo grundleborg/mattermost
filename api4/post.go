@@ -216,7 +216,18 @@ func deletePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_DELETE_OTHERS_POSTS) {
+	post, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if post.UserId == c.Session.UserId && !c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_DELETE_POST) {
+		c.SetPermissionError(model.PERMISSION_DELETE_POST)
+		return
+	}
+
+	if post.UserId != c.Session.UserId && !c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_DELETE_OTHERS_POSTS) {
 		c.SetPermissionError(model.PERMISSION_DELETE_OTHERS_POSTS)
 		return
 	}
@@ -329,12 +340,18 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_POST) {
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if originalPost.UserId == c.Session.UserId && !c.App.SessionHasPermissionToChannel(c.Session, originalPost.ChannelId, model.PERMISSION_EDIT_POST) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
+	if originalPost.UserId != c.Session.UserId && !c.App.SessionHasPermissionToChannel(c.Session, originalPost.ChannelId, model.PERMISSION_EDIT_OTHERS_POSTS) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
 		return
 	}
@@ -363,12 +380,18 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_POST) {
+	originalPost, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if originalPost.UserId == c.Session.UserId && !c.App.SessionHasPermissionToChannel(c.Session, originalPost.ChannelId, model.PERMISSION_EDIT_POST) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToPost(c.Session, c.Params.PostId, model.PERMISSION_EDIT_OTHERS_POSTS) {
+	if originalPost.UserId != c.Session.UserId && !c.App.SessionHasPermissionToChannel(c.Session, originalPost.ChannelId, model.PERMISSION_EDIT_OTHERS_POSTS) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHERS_POSTS)
 		return
 	}
