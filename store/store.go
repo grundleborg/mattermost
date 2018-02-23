@@ -477,3 +477,6 @@ type RoleStore interface {
 	GetByName(name string) StoreChannel
 	GetByNames(names []string) StoreChannel
 }
+
+type SchemeStore interface {
+}
