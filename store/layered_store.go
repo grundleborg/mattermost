@@ -24,6 +24,7 @@ type LayeredStore struct {
 	TmpContext      context.Context
 	ReactionStore   ReactionStore
 	RoleStore       RoleStore
+	SchemeStore     SchemeStore
 	DatabaseLayer   LayeredStoreDatabaseLayer
 	LocalCacheLayer *LocalCacheSupplier
 	RedisLayer      *RedisSupplier
@@ -39,6 +40,7 @@ func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsIn
 
 	store.ReactionStore = &LayeredReactionStore{store}
 	store.RoleStore = &LayeredRoleStore{store}
+	store.SchemeStore = &LayeredSchemeStore{store}
 
 	// Setup the chain
 	if ENABLE_EXPERIMENTAL_REDIS {
@@ -167,6 +169,10 @@ func (s *LayeredStore) Role() RoleStore {
 	return s.RoleStore
 }
 
+func (s *LayeredStore) Scheme() SchemeStore {
+	return s.SchemeStore
+}
+
 func (s *LayeredStore) MarkSystemRanUnitTests() {
 	s.DatabaseLayer.MarkSystemRanUnitTests()
 }
@@ -251,4 +257,8 @@ func (s *LayeredRoleStore) GetByNames(names []string) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.RoleGetByNames(s.TmpContext, names)
 	})
+}
+
+type LayeredSchemeStore struct {
+	*LayeredStore
 }
