@@ -262,3 +262,15 @@ func (s *LayeredRoleStore) GetByNames(names []string) StoreChannel {
 type LayeredSchemeStore struct {
 	*LayeredStore
 }
+
+func (s *LayeredSchemeStore) Save(scheme *model.Scheme) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.SchemeSave(s.TmpContext, scheme)
+	})
+}
+
+func (s *LayeredSchemeStore) Get(schemeId string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.SchemeGet(s.TmpContext, schemeId)
+	})
+}
