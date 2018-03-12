@@ -68,3 +68,14 @@ func (s *LocalCacheSupplier) RoleGetByNames(ctx context.Context, roleNames []str
 
 	return result
 }
+
+func (s *LocalCacheSupplier) RoleDelete(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	result := s.Next().RoleDelete(ctx, roleId, hints...)
+
+	if result.Err == nil {
+		role := result.Data.(*model.Role)
+		s.doInvalidateCacheCluster(s.roleCache, role.Name)
+	}
+
+	return result
+}
