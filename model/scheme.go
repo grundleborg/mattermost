@@ -34,6 +34,11 @@ type SchemePatch struct {
 	Description *string `json:"description"`
 }
 
+type SchemeRoles struct {
+	SchemeAdmin bool `json:"scheme_admin"`
+	SchemeUser  bool `json:"scheme_user"`
+}
+
 func (scheme *Scheme) ToJson() string {
 	b, _ := json.Marshal(scheme)
 	return string(b)
@@ -139,4 +144,15 @@ func SchemePatchFromJson(data io.Reader) *SchemePatch {
 	var patch *SchemePatch
 	json.NewDecoder(data).Decode(&patch)
 	return patch
+}
+
+func (schemeRoles *SchemeRoles) ToJson() string {
+	b, _ := json.Marshal(schemeRoles)
+	return string(b)
+}
+
+func SchemeRolesFromJson(data io.Reader) *SchemeRoles {
+	var schemeRoles *SchemeRoles
+	json.NewDecoder(data).Decode(&schemeRoles)
+	return schemeRoles
 }
