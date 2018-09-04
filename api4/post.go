@@ -330,7 +330,7 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	includeDeletedChannels := r.URL.Query().Get("include_deleted_channels") == "true"
+	//includeDeletedChannels := r.URL.Query().Get("include_deleted_channels") == "true"
 
 	props := model.StringInterfaceFromJson(r.Body)
 
@@ -340,16 +340,17 @@ func searchPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	timeZoneOffset, ok := props["time_zone_offset"].(float64)
+	/*timeZoneOffset, ok := props["time_zone_offset"].(float64)
 	if !ok {
 		timeZoneOffset = 0
-	}
-
-	isOrSearch, _ := props["is_or_search"].(bool)
+	}*/
 
 	startTime := time.Now()
 
-	results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset))
+	//isOrSearch, _ := props["is_or_search"].(bool)
+
+	//results, err := c.App.SearchPostsInTeam(terms, c.Session.UserId, c.Params.TeamId, isOrSearch, includeDeletedChannels, int(timeZoneOffset))
+	results, err := c.App.NewPostSearch(terms, c.Session.UserId, c.Params.TeamId)
 
 	elapsedTime := float64(time.Since(startTime)) / float64(time.Second)
 	metrics := c.App.Metrics

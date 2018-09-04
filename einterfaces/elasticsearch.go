@@ -18,4 +18,5 @@ type ElasticsearchInterface interface {
 	TestConfig(cfg *model.Config) *model.AppError
 	PurgeIndexes() *model.AppError
 	DataRetentionDeleteIndexes(cutoff time.Time) *model.AppError
+	NewSearchPosts(channels *model.ChannelList, terms string) ([]string, model.PostSearchMatches, *model.AppError)
 }
