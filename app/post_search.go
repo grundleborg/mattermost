@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func (a *App) NewPostSearch(terms string, userId string, teamId string) (*model.PostSearchResults, *model.AppError) {
@@ -31,8 +31,22 @@ func (a *App) NewPostSearch(terms string, userId string, teamId string) (*model.
 			} else {
 				for _, p := range presult.Data.([]*model.Post) {
 					postList.AddPost(p)
-					postList.AddOrder(p.Id)
 				}
+			}
+		}
+
+		for _, postId := range postIds {
+			found := false
+
+			for _, post := range postList.Posts {
+				if postId == post.Id {
+					found = true
+					break
+				}
+			}
+
+			if found {
+				postList.AddOrder(postId)
 			}
 		}
 
